@@ -13,6 +13,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@daggler/runner": "workspace:*",
+    "@daggler/runner-protocol": "workspace:*",
     "@daggler/validators": "workspace:*",
     "@daggler/workflow-ir": "workspace:*",
     "picocolors": "^1.1.1"

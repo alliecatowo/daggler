@@ -1,0 +1,24 @@
+{
+  "name": "@daggler/runner",
+  "version": "0.1.0",
+  "description": "Node-only adapters that actually shell out to the local toolchain (actionlint, act, gh) for Daggler's confidence ladder.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@daggler/runner-protocol": "workspace:*",
+    "@daggler/workflow-ir": "workspace:*",
+    "@daggler/validators": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

@@ -8,6 +8,8 @@
  *
  * Commands
  *   daggler lint [paths...] [--json] [--quiet] [--no-color]
+ *   daggler verify [paths...] [--json]
+ *   daggler run <file> [--static|--local|--github] [--full] [--repo R] [--ref REF]
  *   daggler help | --help
  *   daggler --version
  *
@@ -23,6 +25,8 @@ import pc from "picocolors";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { runBridge } from "./bridge.js";
+import { runVerify } from "./verify.js";
+import { runRun } from "./run.js";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -286,17 +290,33 @@ function printHelp(): void {
   process.stdout.write("\n");
   process.stdout.write(
     `  ${bold("Usage")}\n` +
-      `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "lint")} ${dim("[paths...] [flags]")}\n` +
+      `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "lint")}   ${dim("[paths...] [flags]")}\n` +
+      `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "verify")} ${dim("[paths...] [--json]")}\n` +
+      `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "run")}    ${dim("<file> [--static|--local|--github] [--full] [--repo R] [--ref REF]")}\n` +
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "bridge")}\n` +
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "help")}\n` +
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "--version")}\n`,
   );
   process.stdout.write("\n");
   process.stdout.write(
+    `  ${bold("Commands")}\n` +
+      `    ${paint(pc.green as (s: string) => string, "lint")}    Static analysis + security scoring\n` +
+      `    ${paint(pc.green as (s: string) => string, "verify")}  Daggler + actionlint cross-check\n` +
+      `    ${paint(pc.green as (s: string) => string, "run")}     Execute via the confidence ladder (static → local → github)\n` +
+      `    ${paint(pc.green as (s: string) => string, "bridge")}  Local capability probe\n`,
+  );
+  process.stdout.write("\n");
+  process.stdout.write(
     `  ${bold("Flags")}\n` +
-      `    ${paint(pc.yellow, "--json")}       Output results as JSON array\n` +
-      `    ${paint(pc.yellow, "--quiet")}      Only report errors (suppress warnings + infos)\n` +
-      `    ${paint(pc.yellow, "--no-color")}   Disable ANSI color output\n`,
+      `    ${paint(pc.yellow, "--json")}         Output results as JSON array\n` +
+      `    ${paint(pc.yellow, "--quiet")}        Only report errors (suppress warnings + infos)\n` +
+      `    ${paint(pc.yellow, "--no-color")}     Disable ANSI color output\n` +
+      `    ${paint(pc.yellow, "--static")}       run: use Daggler static analyzer (default)\n` +
+      `    ${paint(pc.yellow, "--local")}        run: use local act runner\n` +
+      `    ${paint(pc.yellow, "--github")}       run: dispatch via gh to GitHub Actions\n` +
+      `    ${paint(pc.yellow, "--full")}         run --local: full run instead of plan\n` +
+      `    ${paint(pc.yellow, "--repo")}  ${dim("R")}    run --github: override repo (owner/repo)\n` +
+      `    ${paint(pc.yellow, "--ref")}   ${dim("REF")}  run --github: override git ref\n`,
   );
   process.stdout.write("\n");
   process.stdout.write(
@@ -304,14 +324,17 @@ function printHelp(): void {
       `    ${dim("# Lint the default workflows directory")}  \n` +
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "lint")}\n` +
       `\n` +
-      `    ${dim("# Lint a specific file")}  \n` +
-      `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "lint")} ${dim(".github/workflows/ci.yml")}\n` +
+      `    ${dim("# Cross-check with actionlint")}  \n` +
+      `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "verify")}\n` +
       `\n` +
-      `    ${dim("# Lint all workflows in a directory, output JSON")}  \n` +
-      `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "lint")} ${dim(".github/workflows --json")}\n` +
+      `    ${dim("# Static analysis run")}  \n` +
+      `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "run")} ${dim(".github/workflows/ci.yml")}\n` +
       `\n` +
-      `    ${dim("# Lint multiple targets, only print errors")}  \n` +
-      `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "lint")} ${dim("ci.yml deploy.yml --quiet")}\n`,
+      `    ${dim("# Local act plan (no Docker pull)")}  \n` +
+      `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "run")} ${dim(".github/workflows/ci.yml --local")}\n` +
+      `\n` +
+      `    ${dim("# Dispatch to GitHub Actions")}  \n` +
+      `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "run")} ${dim(".github/workflows/ci.yml --github")}\n`,
   );
   process.stdout.write("\n");
 }
@@ -527,6 +550,18 @@ async function main(): Promise<void> {
   // lint
   if (command === "lint") {
     const exitCode = await runLint(argv.slice(1));
+    process.exit(exitCode);
+  }
+
+  // verify — cross-check with Daggler + actionlint
+  if (command === "verify") {
+    const exitCode = await runVerify(argv.slice(1));
+    process.exit(exitCode);
+  }
+
+  // run — execute via confidence ladder
+  if (command === "run") {
+    const exitCode = await runRun(argv.slice(1));
     process.exit(exitCode);
   }
 
