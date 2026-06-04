@@ -32,13 +32,17 @@ export interface TriggerGraphNode {
   trigger: TriggerIR;
 }
 
-export type GraphEdgeKind = "needs" | "trigger";
+export type GraphEdgeKind = "needs" | "trigger" | "data" | "authority";
 
 export interface GraphEdge {
   id: string;
   from: string;
   to: string;
   kind: GraphEdgeKind;
+  /** Human-readable label, e.g. the output name or secret name. */
+  label?: string;
+  /** Additional detail, e.g. a permission scope or full expression. */
+  detail?: string;
 }
 
 export interface WorkflowGraph {

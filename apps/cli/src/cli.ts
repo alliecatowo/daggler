@@ -29,6 +29,7 @@ import { runVerify } from "./verify.js";
 import { runRun } from "./run.js";
 import { runMap } from "./map.js";
 import { runSearch } from "./search.js";
+import { runLogs } from "./logs.js";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -297,6 +298,7 @@ function printHelp(): void {
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "run")}    ${dim("<file> [--static|--local|--github] [--full] [--repo R] [--ref REF]")}\n` +
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "map")}    ${dim("[dir | owner/repo] [--json]")}\n` +
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "search")} ${dim("<query> [--limit N]")}\n` +
+      `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "logs")}   ${dim("<run-id> [--repo owner/repo] [--workflow <file>]")}\n` +
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "bridge")}\n` +
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "help")}\n` +
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "--version")}\n`,
@@ -309,6 +311,7 @@ function printHelp(): void {
       `    ${paint(pc.green as (s: string) => string, "run")}     Execute via the confidence ladder (static → local → github)\n` +
       `    ${paint(pc.green as (s: string) => string, "map")}     Repository automation map (local or owner/repo via gh)\n` +
       `    ${paint(pc.green as (s: string) => string, "search")}  Find actions in the GitHub ecosystem\n` +
+      `    ${paint(pc.green as (s: string) => string, "logs")}    Fetch a run's logs and map failures to source\n` +
       `    ${paint(pc.green as (s: string) => string, "bridge")}  Local capability probe\n`,
   );
   process.stdout.write("\n");
@@ -322,7 +325,8 @@ function printHelp(): void {
       `    ${paint(pc.yellow, "--github")}       run: dispatch via gh to GitHub Actions\n` +
       `    ${paint(pc.yellow, "--full")}         run --local: full run instead of plan\n` +
       `    ${paint(pc.yellow, "--repo")}  ${dim("R")}    run --github: override repo (owner/repo)\n` +
-      `    ${paint(pc.yellow, "--ref")}   ${dim("REF")}  run --github: override git ref\n`,
+      `    ${paint(pc.yellow, "--ref")}      ${dim("REF")}   run --github: override git ref\n` +
+      `    ${paint(pc.yellow, "--workflow")} ${dim("FILE")}  logs: path to the workflow YAML\n`,
   );
   process.stdout.write("\n");
   process.stdout.write(
@@ -586,6 +590,12 @@ async function main(): Promise<void> {
   // search — find actions in the GitHub ecosystem
   if (command === "search") {
     const exitCode = await runSearch(argv.slice(1));
+    process.exit(exitCode);
+  }
+
+  // logs — fetch a run and map failures to source
+  if (command === "logs") {
+    const exitCode = await runLogs(argv.slice(1));
     process.exit(exitCode);
   }
 

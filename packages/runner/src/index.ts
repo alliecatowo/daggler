@@ -31,3 +31,10 @@ export {
   GitHubDispatchAdapter,
   type DispatchOpts,
 } from "./github.js";
+
+export {
+  parseRunFailure,
+  mapFailureToSource,
+  type RunFailure,
+  type FailureLocation,
+} from "./debug.js";

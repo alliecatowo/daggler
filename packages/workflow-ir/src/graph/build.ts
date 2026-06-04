@@ -6,8 +6,9 @@
  * behind a cycle or a missing dependency), and assign per-column rows.
  * ========================================================================== */
 
-import type { WorkflowIR } from "../ir/types.js";
+import type { JobIR, WorkflowIR } from "../ir/types.js";
 import { jobPath, triggerPath } from "../ir/paths.js";
+import { parseExpression } from "../parse/normalize.js";
 import type {
   GraphEdge,
   JobGraphNode,
@@ -69,6 +70,106 @@ function computeDepths(
   };
   for (const id of ids) visit(id, new Set());
   return depth;
+}
+
+/** Regex to find `needs.<jobId>.outputs.<outputName>` references. */
+const NEEDS_OUTPUT_RE = /needs\.([A-Za-z0-9_-]+)\.outputs\.([A-Za-z0-9_-]+)/g;
+
+/** Collect all raw string values from a job that may carry expressions. */
+function collectJobExpressionTexts(job: JobIR): string[] {
+  const texts: string[] = [];
+  if (job.if) texts.push(job.if);
+  if (job.outputs) {
+    for (const val of Object.values(job.outputs)) {
+      texts.push(val);
+    }
+  }
+  for (const step of job.steps) {
+    if (step.if) texts.push(step.if);
+    if (step.env) {
+      for (const val of Object.values(step.env)) texts.push(val);
+    }
+    if (step.kind === "uses" && step.with) {
+      for (const val of Object.values(step.with)) texts.push(String(val));
+    }
+    if (step.kind === "run") {
+      texts.push(step.run);
+    }
+  }
+  return texts;
+}
+
+/**
+ * Scan a job's expressions for `needs.<A>.outputs.<x>` references and return
+ * unique {from, label} pairs (deduplicated by from+label).
+ */
+function findNeedsOutputRefs(
+  job: JobIR,
+): Array<{ from: string; label: string }> {
+  const seen = new Set<string>();
+  const results: Array<{ from: string; label: string }> = [];
+
+  const texts = collectJobExpressionTexts(job);
+  for (const text of texts) {
+    // Also gather expression bodies via parseExpression for well-formed ${{}}
+    const parsed = parseExpression(text);
+    const toSearch = [text, ...parsed.expressions];
+    for (const s of toSearch) {
+      NEEDS_OUTPUT_RE.lastIndex = 0;
+      let m: RegExpExecArray | null;
+      while ((m = NEEDS_OUTPUT_RE.exec(s)) !== null) {
+        const from = m[1]!;
+        const label = m[2]!;
+        const key = `${from}\0${label}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          results.push({ from, label });
+        }
+      }
+    }
+  }
+  return results;
+}
+
+const SECRET_RE = /secrets\.([A-Za-z0-9_]+)/g;
+const GITHUB_TOKEN = "GITHUB_TOKEN";
+
+/**
+ * Collect non-GITHUB_TOKEN secret names referenced in a job's expressions.
+ */
+function findSecretRefs(job: JobIR): string[] {
+  const seen = new Set<string>();
+  const texts = collectJobExpressionTexts(job);
+  for (const text of texts) {
+    SECRET_RE.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = SECRET_RE.exec(text)) !== null) {
+      const name = m[1]!;
+      if (name !== GITHUB_TOKEN) seen.add(name);
+    }
+  }
+  return [...seen];
+}
+
+/**
+ * Return all write-level permission scopes granted to a job, consulting both
+ * the job-level permissions and the workflow-level permissions (when the job
+ * has no job-level override).
+ */
+function findWriteScopes(job: JobIR, ir: WorkflowIR): string[] {
+  const perms = job.permissions ?? ir.permissions;
+  if (!perms) return [];
+
+  const scopes: string[] = [];
+  if (perms.all === "write") {
+    scopes.push("write-all");
+  }
+  if (perms.scopes) {
+    for (const [scope, level] of Object.entries(perms.scopes)) {
+      if (level === "write") scopes.push(scope);
+    }
+  }
+  return scopes;
 }
 
 export function buildGraph(ir: WorkflowIR): WorkflowGraph {
@@ -146,6 +247,53 @@ export function buildGraph(ir: WorkflowIR): WorkflowGraph {
         from: t.path,
         to: rootId,
         kind: "trigger",
+      });
+    }
+  }
+
+  // DATA edges: needs.<A>.outputs.<x> references.
+  // Deduplication key: from->to->label (one edge per unique triple).
+  const dataEdgeSeen = new Set<string>();
+  for (const job of ir.jobs) {
+    const refs = findNeedsOutputRefs(job);
+    for (const { from, label } of refs) {
+      const dedupeKey = `${from}\0${job.id}\0${label}`;
+      if (dataEdgeSeen.has(dedupeKey)) continue;
+      dataEdgeSeen.add(dedupeKey);
+      edges.push({
+        id: `data:${from}->${job.id}:${label}`,
+        from,
+        to: job.id,
+        kind: "data",
+        label,
+      });
+    }
+  }
+
+  // AUTHORITY edges: secrets and write permissions.
+  for (const job of ir.jobs) {
+    // Secret references (excluding GITHUB_TOKEN).
+    const secrets = findSecretRefs(job);
+    for (const name of secrets) {
+      const from = `secret:${name}`;
+      edges.push({
+        id: `authority:secret:${name}->${job.id}`,
+        from,
+        to: job.id,
+        kind: "authority",
+        label: name,
+      });
+    }
+    // Write-level permission scopes.
+    const writeScopes = findWriteScopes(job, ir);
+    for (const scope of writeScopes) {
+      const from = `perm:${scope}`;
+      edges.push({
+        id: `authority:perm:${scope}->${job.id}`,
+        from,
+        to: job.id,
+        kind: "authority",
+        label: scope,
       });
     }
   }
