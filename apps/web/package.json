@@ -12,6 +12,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@daggler/github": "workspace:*",
+    "@daggler/inventory": "workspace:*",
     "@daggler/runner": "workspace:*",
     "@daggler/runner-protocol": "workspace:*",
     "@daggler/simulate": "workspace:*",

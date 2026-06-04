@@ -834,3 +834,211 @@ a.btn { text-decoration: none; }
 .jobnode--sim-run .jobnode__bar { background: var(--ok); }
 .jobnode--sim-unknown .jobnode__bar { background: var(--warn); }
 .yaml-sel-gutter { background: var(--accent); width: 2px !important; margin-left: 2px; }
+
+/* ===========================================================================
+   Daggler /map — Automation Map page styles.
+   Additive only — appended after all existing rules.
+   =========================================================================== */
+
+/* Two-column layout: main (workflow cards) + aside (totals) */
+.map-layout {
+  display: grid;
+  grid-template-columns: 1fr 296px;
+  gap: 24px;
+  align-items: flex-start;
+}
+@media (max-width: 860px) {
+  .map-layout { grid-template-columns: 1fr; }
+  .map-aside { order: -1; }
+}
+
+.map-main { min-width: 0; }
+
+/* Workflow card */
+.map-wfcard {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 18px 20px;
+  transition: border-color .14s;
+}
+.map-wfcard:hover { border-color: var(--border-strong); }
+
+.map-wfcard__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.map-wfcard__name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-hi);
+  letter-spacing: -0.01em;
+}
+.map-wfcard__path {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 3px;
+}
+
+/* Stats strip */
+.map-wfcard__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+.map-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 7px 14px;
+  border-right: 1px solid var(--border-soft);
+  flex: 1;
+  min-width: 64px;
+}
+.map-stat:last-child { border-right: none; }
+.map-stat__label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+.map-stat__val {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-hi);
+  font-family: var(--mono);
+  line-height: 1.1;
+}
+
+/* Expanded detail panel inside card */
+.map-wfcard__detail {
+  margin-top: 14px;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.map-wfcard__section { display: flex; flex-direction: column; gap: 8px; }
+.map-section-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+
+/* Action row inside card */
+.map-action-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: var(--r-sm);
+  background: var(--bg-2);
+}
+.map-action-row__uses {
+  font-size: 12px;
+  color: var(--text-hi);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Totals sidebar */
+.map-aside { position: sticky; top: 80px; }
+.map-totals {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 18px 20px;
+}
+.map-totals__title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+  margin-bottom: 14px;
+}
+.map-totals__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  margin-bottom: 0;
+}
+.map-statcell {
+  background: var(--bg-2);
+  padding: 9px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.map-statcell__label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+.map-statcell__value {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--mono);
+  color: var(--text-hi);
+  line-height: 1.1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Section title (action usage, etc.) */
+.map-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+}
+
+/* Action usage table */
+.map-table-wrap {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.map-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.map-table th {
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.map-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text-mid);
+  vertical-align: middle;
+}
+.map-table tr:last-child td { border-bottom: none; }
+.map-table tr:hover td { background: var(--bg-1); }

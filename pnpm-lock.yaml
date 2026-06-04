@@ -63,6 +63,12 @@ importers:
 
   apps/web:
     dependencies:
+      '@daggler/github':
+        specifier: workspace:*
+        version: link:../../packages/github
+      '@daggler/inventory':
+        specifier: workspace:*
+        version: link:../../packages/inventory
       '@daggler/runner':
         specifier: workspace:*
         version: link:../../packages/runner

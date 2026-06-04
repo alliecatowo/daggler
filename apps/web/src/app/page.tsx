@@ -279,6 +279,7 @@ export default function LandingPage() {
             <a className="nav__link" href="#selfhost">Self-host</a>
             <a className="nav__link" href="#">Docs</a>
             <a className="nav__link" href="#">Pricing</a>
+            <Link className="nav__link" href="/map">Automation map</Link>
           </nav>
 
           {/* Right cluster */}

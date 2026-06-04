@@ -2,6 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: [
+    "@daggler/github",
+    "@daggler/inventory",
     "@daggler/workflow-ir",
     "@daggler/validators",
     "@daggler/db",
