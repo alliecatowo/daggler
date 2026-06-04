@@ -263,16 +263,30 @@ export function LeftRail(): ReactNode {
 // DiagnosticsPanel
 // ============================================================================
 
-/** Collapsible bottom panel with Diagnostics + Run tabs. */
+/** Collapsible bottom panel with Diagnostics + Run + AI tabs. */
 export function DiagnosticsPanel(): ReactNode {
-  const { analysis, diagOpen, setDiagOpen, setSelected, lastRun } = useEditor();
+  const {
+    analysis,
+    diagOpen,
+    setDiagOpen,
+    setSelected,
+    lastRun,
+    aiResult,
+    aiLoading,
+    applyAiEdits,
+  } = useEditor();
   const { diagnostics, counts } = analysis.validation;
-  const [activeTab, setActiveTab] = useState<"diagnostics" | "run">("diagnostics");
+  const [activeTab, setActiveTab] = useState<"diagnostics" | "run" | "ai">("diagnostics");
 
   // Switch to Run tab automatically when a new run result arrives.
   useEffect(() => {
     if (lastRun) setActiveTab("run");
   }, [lastRun]);
+
+  // Switch to AI tab automatically when a new AI result arrives.
+  useEffect(() => {
+    if (aiResult || aiLoading) setActiveTab("ai");
+  }, [aiResult, aiLoading]);
 
   return (
     <div className={"ed-bottom" + (diagOpen ? " is-open" : "")}>
@@ -302,6 +316,18 @@ export function DiagnosticsPanel(): ReactNode {
             <span className={`ed-cnt ed-cnt--run sev-${lastRun.status === "passed" || lastRun.status === "ok" ? "info" : lastRun.status === "unavailable" ? "warning" : "error"}`}>
               ● {lastRun.status}
             </span>
+          )}
+        </button>
+        <button
+          className={"ed-bottom__tab" + (activeTab === "ai" ? " is-active" : "")}
+          onClick={() => { setActiveTab("ai"); setDiagOpen(true); }}
+        >
+          AI
+          {aiLoading && (
+            <span className="ed-cnt sev-info">● loading</span>
+          )}
+          {!aiLoading && aiResult?.available && (
+            <span className="ed-cnt sev-info">● ready</span>
           )}
         </button>
         {/* Toggle collapse */}
@@ -344,6 +370,59 @@ export function DiagnosticsPanel(): ReactNode {
       )}
 
       {diagOpen && activeTab === "run" && <RunPanel />}
+
+      {diagOpen && activeTab === "ai" && (
+        <div className="ai-panel scroll">
+          {aiLoading && (
+            <div className="ai-panel__loading">
+              <span className="ai-panel__spinner" aria-hidden />
+              Asking Claude…
+            </div>
+          )}
+
+          {!aiLoading && !aiResult && (
+            <div className="ai-panel__empty">
+              Use ⌘K &gt; &quot;Explain this workflow&quot; or &quot;Make this workflow safer&quot; to get started.
+            </div>
+          )}
+
+          {!aiLoading && aiResult && !aiResult.available && (
+            <div className="ai-panel__unavailable">
+              <span className="ai-panel__unavail-icon" aria-hidden>⚠</span>
+              <span>{aiResult.message ?? "AI not available"}</span>
+            </div>
+          )}
+
+          {!aiLoading && aiResult?.available && (
+            <section className="ai-panel__result">
+              {/* Summary */}
+              {aiResult.summary && (
+                <div className="ai-panel__summary">{aiResult.summary}</div>
+              )}
+
+              {/* Explanation */}
+              {aiResult.explanation && (
+                <div className="ai-panel__explanation">{aiResult.explanation}</div>
+              )}
+
+              {/* Apply edits CTA */}
+              {Array.isArray(aiResult.edits) && aiResult.edits.length > 0 && (
+                <button
+                  className="btn btn--primary btn--sm ai-panel__apply"
+                  onClick={applyAiEdits}
+                >
+                  Apply {aiResult.edits.length} edit{aiResult.edits.length === 1 ? "" : "s"}
+                </button>
+              )}
+
+              {/* Error from the AI call */}
+              {aiResult.error && (
+                <div className="ai-panel__error">{aiResult.error}</div>
+              )}
+            </section>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -373,6 +452,8 @@ export function CommandPalette(): ReactNode {
     applyQuickFix,
     pushToast,
     toggleTheme,
+    askAi,
+    setDiagOpen,
   } = useEditor();
 
   const [query, setQuery] = useState("");
@@ -402,6 +483,18 @@ export function CommandPalette(): ReactNode {
   };
 
   const commands: PaletteCommand[] = [
+    {
+      label: "Explain this workflow",
+      hint: "AI",
+      icon: "✦",
+      run: () => { askAi("explain"); setDiagOpen(true); setPalOpen(false); },
+    },
+    {
+      label: "Make this workflow safer",
+      hint: "AI",
+      icon: "⛨",
+      run: () => { askAi("harden"); setDiagOpen(true); setPalOpen(false); },
+    },
     {
       label: "Validate workflow",
       hint: "static",

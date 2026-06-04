@@ -2,6 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: [
+    "@daggler/ai",
     "@daggler/github",
     "@daggler/inventory",
     "@daggler/workflow-ir",
@@ -10,6 +11,7 @@ const nextConfig = {
     "@daggler/runner",
     "@daggler/runner-protocol",
     "@daggler/simulate",
+    "@daggler/worker",
   ],
   eslint: {
     ignoreDuringBuilds: true,

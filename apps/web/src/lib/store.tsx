@@ -80,6 +80,26 @@ export interface LastRun {
 
 export type SimulateDecision = "run" | "skip" | "unknown";
 
+export type AiIntent = "explain" | "harden" | "generate";
+
+export interface AiResult {
+  available: boolean;
+  /** Populated when available is false. */
+  message?: string;
+  /** The intent the result was produced for. */
+  intent?: AiIntent;
+  /** AI explanation / analysis. */
+  explanation?: string;
+  /** Short one-sentence summary. */
+  summary?: string;
+  /** Structured edits to apply to the source. */
+  edits?: unknown[];
+  /** Full proposed YAML for "generate" intent. */
+  proposedYaml?: string;
+  /** Error description (available:true but something went wrong). */
+  error?: string;
+}
+
 export interface SimulateResult {
   triggered: boolean;
   triggerReason: string;
@@ -119,6 +139,11 @@ export interface EditorApi {
   toasts: Toast[];
   lastRun: LastRun | null;
   simulateResult: SimulateResult | null;
+  // AI assistant
+  aiResult: AiResult | null;
+  aiLoading: boolean;
+  askAi: (intent: AiIntent) => void;
+  applyAiEdits: () => void;
   // mutations
   selectWorkflow: (id: string) => void;
   setSource: (next: string) => void;
@@ -186,6 +211,8 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [lastRun, setLastRun] = useState<LastRun | null>(null);
   const [simulateResult, setSimulateResult] = useState<SimulateResult | null>(null);
+  const [aiResult, setAiResult] = useState<AiResult | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const toastId = useRef(0);
   const runTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
@@ -494,6 +521,67 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       });
   }, [analysis.ir, pushToast]);
 
+  // ---------------------------------------------------------------------------
+  // askAi — POST { yaml, intent, path } to /api/ai, store the result.
+  // ---------------------------------------------------------------------------
+  const askAi = useCallback(
+    (intent: AiIntent) => {
+      if (aiLoading) return;
+      setAiLoading(true);
+      setAiResult(null);
+      pushToast(`AI: ${intent}ing workflow…`);
+
+      fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ yaml: source, intent, path: active.path }),
+      })
+        .then(async (res) => {
+          const data = (await res.json()) as AiResult;
+          setAiResult(data);
+          if (!data.available) {
+            pushToast(data.message ?? "AI not available");
+          } else {
+            pushToast(data.summary ?? `AI ${intent} complete`);
+          }
+        })
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          setAiResult({ available: false, message: `AI request failed: ${msg}` });
+          pushToast(`AI error: ${msg}`);
+        })
+        .finally(() => {
+          setAiLoading(false);
+        });
+    },
+    [aiLoading, source, active.path, pushToast],
+  );
+
+  // ---------------------------------------------------------------------------
+  // applyAiEdits — apply aiResult.edits in order via applyCommand.
+  // Must only be invoked on explicit user action (never auto-applied).
+  // ---------------------------------------------------------------------------
+  const applyAiEdits = useCallback(() => {
+    if (!aiResult?.available || !aiResult.edits?.length) return;
+    let next = source;
+    let applied = 0;
+    for (const edit of aiResult.edits) {
+      const res = applyCommand(next, edit as EditorCommand);
+      if (res.ok) {
+        next = res.source;
+        applied++;
+      }
+    }
+    if (applied > 0) {
+      setSource(next);
+    }
+    pushToast(
+      applied > 0
+        ? `Applied ${applied} AI edit${applied === 1 ? "" : "s"}`
+        : "No edits could be applied",
+    );
+  }, [aiResult, source, setSource, pushToast]);
+
   const api: EditorApi = {
     workflows,
     activeId,
@@ -520,6 +608,10 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     toasts,
     lastRun,
     simulateResult,
+    aiResult,
+    aiLoading,
+    askAi,
+    applyAiEdits,
     selectWorkflow,
     setSource,
     applyEdit,
