@@ -12,7 +12,7 @@ import { POLICY_PACKS, POLICY_RULES, trustOf, lookupActionMeta } from "@daggler/
 import { useEditor } from "../lib/store";
 import { pathToSelection } from "../lib/selection";
 import { SearchIcon } from "./icons";
-import type { UsesStepIR } from "@daggler/workflow-ir";
+import { WORKFLOW_TEMPLATES, type WorkflowTemplate, type UsesStepIR } from "@daggler/workflow-ir";
 
 /* ---------------------------------------------------------------------------
  * Helpers
@@ -166,7 +166,7 @@ function WorkflowsTab() {
  * has catalog metadata, an `.actiondetail` block appears above the list.
  */
 function ActionsTab() {
-  const { analysis, selectedAction, setSelectedAction } = useEditor();
+  const { analysis, selectedAction, setSelectedAction, insertActionStep } = useEditor();
   const [query, setQuery] = useState("");
 
   // Collect unique uses-steps keyed by step.uses string.
@@ -253,6 +253,15 @@ function ActionsTab() {
               ))}
             </div>
           )}
+
+          {/* Insert action into selected job */}
+          <button
+            className="action-insert-btn"
+            onClick={() => insertActionStep(selectedAction!)}
+            title={`Insert ${selectedAction} into the selected job`}
+          >
+            + Insert into selected job
+          </button>
         </div>
       )}
 
@@ -292,14 +301,20 @@ function ActionsTab() {
                 : "community";
 
           return (
-            <button
+            <div
               key={step.uses}
-              className="side-action"
+              className="side-action side-action--row"
+              role="button"
+              tabIndex={0}
               onClick={() =>
                 setSelectedAction(
                   selectedAction === step.uses ? null : step.uses,
                 )
               }
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ")
+                  setSelectedAction(selectedAction === step.uses ? null : step.uses);
+              }}
             >
               <span className="side-action__top">
                 <span className="side-action__name mono">{displayName}</span>
@@ -319,8 +334,18 @@ function ActionsTab() {
                 <span className={`side-action__trust ${trustClass}`}>
                   {trustLabel}
                 </span>
+                <button
+                  className="action-insert-icon"
+                  title={`Insert ${step.uses} into selected job`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    insertActionStep(step.uses);
+                  }}
+                >
+                  +
+                </button>
               </span>
-            </button>
+            </div>
           );
         })}
       </div>
@@ -331,45 +356,46 @@ function ActionsTab() {
 /* ---------------------------------------------------------------------------
  * Tab: Templates
  * ---------------------------------------------------------------------------
- * Static groups of template names. Clicking any template shows a coming-soon
- * toast via pushToast().
+ * Renders WORKFLOW_TEMPLATES from @daggler/workflow-ir grouped by category.
+ * Clicking a template (or its + button) calls insertTemplate(t.id).
  */
-const TEMPLATE_GROUPS = [
-  {
-    g: "Language CI",
-    items: ["Node.js CI", "Python CI", "Rust CI", "Go CI"],
-  },
-  {
-    g: "Publish",
-    items: ["npm publish", "PyPI publish", "Docker build & push"],
-  },
-  {
-    g: "Deploy",
-    items: ["Preview deployment", "Terraform plan/apply"],
-  },
-  {
-    g: "Hardened",
-    items: ["AI agent safe workflow", "Reusable workflow starter"],
-  },
-] as const;
+
+/** Group WORKFLOW_TEMPLATES by category, preserving insertion order. */
+function groupTemplates(
+  templates: readonly WorkflowTemplate[],
+): { category: string; items: WorkflowTemplate[] }[] {
+  const map = new Map<string, WorkflowTemplate[]>();
+  for (const t of templates) {
+    const bucket = map.get(t.category);
+    if (bucket) {
+      bucket.push(t);
+    } else {
+      map.set(t.category, [t]);
+    }
+  }
+  return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
+}
+
+const TEMPLATE_CATEGORY_GROUPS = groupTemplates(WORKFLOW_TEMPLATES);
 
 function TemplatesTab() {
-  const { pushToast } = useEditor();
+  const { insertTemplate } = useEditor();
 
   return (
     <div className="side scroll">
-      <SideHead title="Templates" />
-      {TEMPLATE_GROUPS.map((grp) => (
-        <div key={grp.g} className="side-tplgroup">
-          <div className="side-tplgroup__h">{grp.g}</div>
-          {grp.items.map((item) => (
+      <SideHead title="Templates" count={WORKFLOW_TEMPLATES.length} />
+      {TEMPLATE_CATEGORY_GROUPS.map((grp) => (
+        <div key={grp.category} className="side-tplgroup">
+          <div className="side-tplgroup__h">{grp.category}</div>
+          {grp.items.map((t) => (
             <button
-              key={item}
+              key={t.id}
               className="side-tpl"
-              onClick={() => pushToast("Template insertion is coming soon")}
+              title={t.description}
+              onClick={() => insertTemplate(t.id)}
             >
               <span className="side-tpl__icon mono">⌘</span>
-              <span className="side-tpl__name">{item}</span>
+              <span className="side-tpl__name">{t.name}</span>
               <span className="side-tpl__add">+</span>
             </button>
           ))}

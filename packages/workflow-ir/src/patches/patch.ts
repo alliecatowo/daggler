@@ -7,7 +7,7 @@
  * patch the caller re-parses the returned source to rebuild the IR and graph.
  * ========================================================================== */
 
-import { parseDocument, type Document } from "yaml";
+import { isSeq, parseDocument, type Document } from "yaml";
 
 export type EditorCommand =
   | { type: "workflow.rename"; name: string }
@@ -24,7 +24,20 @@ export type EditorCommand =
       scope: "workflow" | { jobId: string };
       key: string;
       level: "read" | "write" | "none";
-    };
+    }
+  | {
+      type: "step.add";
+      jobId: string;
+      /** Insert position within the steps sequence. Appends when omitted. */
+      index?: number;
+      step: {
+        uses?: string;
+        run?: string;
+        name?: string;
+        with?: Record<string, string | number | boolean>;
+      };
+    }
+  | { type: "step.remove"; jobId: string; index: number };
 
 export interface PatchResult {
   source: string;
@@ -110,6 +123,44 @@ export function applyCommand(source: string, command: EditorCommand): PatchResul
             ? ["permissions"]
             : [...jobBase(command.scope.jobId), "permissions"];
         doc.setIn([...base, command.key], command.level);
+        break;
+      }
+
+      case "step.add": {
+        // Build a plain JS object for the new step in canonical key order
+        // (name first, then uses/run, then with) so createNode produces a tidy map.
+        const stepObj: Record<string, unknown> = {};
+        if (command.step.name !== undefined) stepObj["name"] = command.step.name;
+        if (command.step.uses !== undefined) {
+          stepObj["uses"] = command.step.uses;
+          if (command.step.with !== undefined) stepObj["with"] = command.step.with;
+        } else if (command.step.run !== undefined) {
+          stepObj["run"] = command.step.run;
+        }
+        const stepNode = doc.createNode(stepObj);
+
+        const stepsPath = [...jobBase(command.jobId), "steps"];
+        const existing = doc.getIn(stepsPath, true);
+        if (isSeq(existing)) {
+          // Insert at the requested index or append.
+          if (command.index !== undefined) {
+            existing.items.splice(command.index, 0, stepNode);
+          } else {
+            existing.items.push(stepNode);
+          }
+        } else {
+          // Job has no steps key yet — create the sequence.
+          doc.setIn(stepsPath, doc.createNode([stepObj]));
+        }
+        break;
+      }
+
+      case "step.remove": {
+        const stepsPath = [...jobBase(command.jobId), "steps"];
+        const seq = doc.getIn(stepsPath, true);
+        if (isSeq(seq)) {
+          seq.items.splice(command.index, 1);
+        }
         break;
       }
     }

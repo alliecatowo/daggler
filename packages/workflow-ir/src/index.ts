@@ -36,3 +36,9 @@ export {
   SAMPLE_BY_ID,
   type SampleWorkflow,
 } from "./samples.js";
+
+export {
+  WORKFLOW_TEMPLATES,
+  TEMPLATE_BY_ID,
+  type WorkflowTemplate,
+} from "./templates.js";

@@ -12,6 +12,7 @@ import {
   applyCommand,
   pinActionToSha,
   SAMPLE_WORKFLOWS,
+  TEMPLATE_BY_ID,
   type EditorCommand,
   type SampleWorkflow,
 } from "@daggler/workflow-ir";
@@ -128,6 +129,8 @@ export interface EditorApi {
   runViaApi: (mode: RunMode) => void;
   runEventSimulate: () => void;
   pushToast: (text: string) => void;
+  insertTemplate: (templateId: string) => void;
+  insertActionStep: (uses: string) => void;
 }
 
 const Ctx = createContext<EditorApi | null>(null);
@@ -151,12 +154,15 @@ function depthOf(
     : 0;
 }
 
+/** Module-level counter for unique template workflow ids. */
+let _tplCounter = 0;
+
 export function EditorProvider({ children }: { children: ReactNode }) {
-  const workflows = SAMPLE_WORKFLOWS;
-  const [activeId, setActiveId] = useState(workflows[0]!.id);
+  const [workflows, setWorkflows] = useState<SampleWorkflow[]>(() => SAMPLE_WORKFLOWS);
+  const [activeId, setActiveId] = useState(SAMPLE_WORKFLOWS[0]!.id);
   // Editable source per workflow id (so switching preserves edits).
   const [sources, setSources] = useState<Record<string, string>>(() =>
-    Object.fromEntries(workflows.map((w) => [w.id, w.yaml])),
+    Object.fromEntries(SAMPLE_WORKFLOWS.map((w) => [w.id, w.yaml])),
   );
 
   const active = useMemo(
@@ -228,6 +234,36 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     pushToast("Reverted to original");
   }, [activeId, active.yaml, pushToast]);
 
+  const insertTemplate = useCallback(
+    (templateId: string) => {
+      const tpl = TEMPLATE_BY_ID[templateId];
+      if (!tpl) {
+        pushToast(`Unknown template: ${templateId}`);
+        return;
+      }
+      const counter = ++_tplCounter;
+      const id = `tpl-${tpl.id}-${counter}`;
+      const entry: SampleWorkflow = {
+        id,
+        name: tpl.name,
+        path: `.github/workflows/${id}.yml`,
+        description: tpl.description,
+        tag: "template",
+        yaml: tpl.yaml,
+      };
+      setWorkflows((ws) => [...ws, entry]);
+      setSources((s) => ({ ...s, [id]: tpl.yaml }));
+      setActiveId(id);
+      setSelected(null);
+      setSelectedAction(null);
+      setRunState(null);
+      setLastRun(null);
+      setSimulateResult(null);
+      pushToast(`Inserted template: ${tpl.name}`);
+    },
+    [pushToast],
+  );
+
   const applyEdit = useCallback(
     (command: EditorCommand) => {
       const res = applyCommand(source, command);
@@ -238,6 +274,30 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       }
     },
     [source, setSource, pushToast],
+  );
+
+  const insertActionStep = useCallback(
+    (uses: string) => {
+      // Determine which job to target: prefer currently selected job/step.
+      let jobId: string | null = null;
+      if (selected?.type === "job") {
+        jobId = selected.id;
+      } else if (selected?.type === "step") {
+        jobId = selected.id;
+      }
+      if (!jobId) {
+        pushToast("Select a job in the graph first");
+        return;
+      }
+      const res = applyCommand(source, { type: "step.add", jobId, step: { uses } });
+      if (res.ok) {
+        setSource(res.source);
+        pushToast(`Added ${uses} to ${jobId}`);
+      } else {
+        pushToast(res.error ?? "Edit could not be applied");
+      }
+    },
+    [selected, source, setSource, pushToast],
   );
 
   const applyQuickFix = useCallback(
@@ -469,6 +529,8 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     runViaApi,
     runEventSimulate,
     pushToast,
+    insertTemplate,
+    insertActionStep,
   };
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;

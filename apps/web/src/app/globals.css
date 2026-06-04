@@ -1042,3 +1042,51 @@ a.btn { text-decoration: none; }
 }
 .map-table tr:last-child td { border-bottom: none; }
 .map-table tr:hover td { background: var(--bg-1); }
+
+/* ---------------------------------------------------------------------------
+ * Action row insert affordance
+ * ------------------------------------------------------------------------- */
+/* Convert action row to a div-based interactive element so we can nest a button */
+.side-action--row {
+  cursor: pointer;
+  user-select: none;
+}
+.side-action--row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* Small + icon button that appears on hover over each action row */
+.action-insert-icon {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--border-soft);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--accent-text);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.side-action--row:hover .action-insert-icon { display: flex; }
+.action-insert-icon:hover { background: var(--accent); color: var(--bg-0); border-color: var(--accent); }
+
+/* "Insert into selected job" full-width button in the actiondetail panel */
+.action-insert-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--accent-text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: center;
+}
+.action-insert-btn:hover { background: var(--accent); color: var(--bg-0); border-color: var(--accent); }
