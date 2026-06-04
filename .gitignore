@@ -1,1 +1,25 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+dist/
+.next/
+out/
+*.tsbuildinfo
+
+# turbo
+.turbo/
+
+# env
+.env
+.env.local
+.env*.local
+
+# design scratch (extracted from daggler.zip; not part of the source)
+.design/
 daggler.zip
+
+# os / editor
+.DS_Store
+*.log

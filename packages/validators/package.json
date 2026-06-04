@@ -1,0 +1,24 @@
+{
+  "name": "@daggler/validators",
+  "version": "0.1.0",
+  "description": "Daggler's five-layer validation engine: parse/schema, expression/context, graph semantics, action metadata, and policy/security packs.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@daggler/workflow-ir": "workspace:*",
+    "picomatch": "^4.0.2"
+  },
+  "devDependencies": {
+    "@types/picomatch": "^3.0.1",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,0 +1,67 @@
+# Daggler — self-host stack
+# Requirements: Docker Engine 24+ and Docker Compose v2.
+# Copy .env.example to .env and fill in the blanks before starting.
+#
+#   cp .env.example .env
+#   docker compose up -d
+#
+# The web UI will be available at http://localhost:3737
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-daggler}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-daggler}
+      POSTGRES_DB: ${POSTGRES_DB:-daggler}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-daggler} -d ${POSTGRES_DB:-daggler}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3737}:3737"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgres://daggler:daggler@postgres:5432/daggler}
+      DAGGLER_SECRET_KEY: ${DAGGLER_SECRET_KEY:?DAGGLER_SECRET_KEY must be set}
+      GITHUB_APP_ID: ${GITHUB_APP_ID:-}
+      GITHUB_APP_PRIVATE_KEY: ${GITHUB_APP_PRIVATE_KEY:-}
+      GITHUB_WEBHOOK_SECRET: ${GITHUB_WEBHOOK_SECRET:-}
+      GITHUB_OAUTH_CLIENT_ID: ${GITHUB_OAUTH_CLIENT_ID:-}
+      GITHUB_OAUTH_CLIENT_SECRET: ${GITHUB_OAUTH_CLIENT_SECRET:-}
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Background jobs service — Graphile Worker lives here.
+  # It dequeues tasks posted by the web process (e.g. re-validation runs,
+  # actions-catalog refreshes, GitHub webhook fan-out) and runs them against
+  # the same Postgres database so no separate queue broker is needed.
+  worker:
+    image: node:20-alpine
+    restart: unless-stopped
+    working_dir: /app
+    # Replace the placeholder command with your compiled worker entrypoint, e.g.:
+    #   command: ["node", "dist/worker/index.js"]
+    command: ["node", "-e", "console.log('Daggler worker placeholder — wire up Graphile Worker here'); process.exit(0)"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgres://daggler:daggler@postgres:5432/daggler}
+      DAGGLER_SECRET_KEY: ${DAGGLER_SECRET_KEY:?DAGGLER_SECRET_KEY must be set}
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
