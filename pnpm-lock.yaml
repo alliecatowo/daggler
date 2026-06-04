@@ -86,6 +86,25 @@ importers:
         specifier: ^5.7.2
         version: 5.9.3
 
+  apps/worker:
+    dependencies:
+      '@daggler/validators':
+        specifier: workspace:*
+        version: link:../../packages/validators
+      '@daggler/workflow-ir':
+        specifier: workspace:*
+        version: link:../../packages/workflow-ir
+    devDependencies:
+      tsx:
+        specifier: ^4.19.2
+        version: 4.22.4
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.19.19)
+
   packages/db:
     dependencies:
       drizzle-orm:
@@ -98,6 +117,35 @@ importers:
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
+
+  packages/github:
+    dependencies:
+      '@daggler/workflow-ir':
+        specifier: workspace:*
+        version: link:../workflow-ir
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.19.19)
+
+  packages/runner-protocol:
+    dependencies:
+      '@daggler/validators':
+        specifier: workspace:*
+        version: link:../validators
+      '@daggler/workflow-ir':
+        specifier: workspace:*
+        version: link:../workflow-ir
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.19.19)
 
   packages/validators:
     dependencies:

@@ -38,12 +38,17 @@ GitHub Actions workflows are code. Daggler treats them that way:
 ```
 daggler/
 ├── apps/
-│   ├── cli/                  # daggler lint — terminal linter (tsup → Node ESM)
-│   └── web/                  # Next.js 15 + React 19 editor (runs engine client-side)
+│   ├── cli/                  # daggler lint / daggler bridge — terminal linter (tsup → Node ESM)
+│   ├── web/                  # Next.js 15 + React 19 editor (runs engine client-side)
+│   └── worker/               # Graphile Worker job registry (parse, validate, sync stubs)
 ├── packages/
 │   ├── workflow-ir/          # parser → IR → graph → serialize → patches
 │   ├── validators/           # 5-layer validator + policy engine + actions catalog
+│   ├── runner-protocol/      # RunnerPort + confidence ladder (AnalyzerAdapter, ActAdapter, GitHubDispatchAdapter)
+│   ├── github/               # GitHubRepositoryPort + InMemoryGitHubAdapter
 │   └── db/                   # Drizzle ORM Postgres schema (self-host persistence)
+├── ARCHITECTURE.md
+├── CHANGELOG.md
 ├── pnpm-workspace.yaml
 └── turbo.json
 ```
@@ -118,6 +123,7 @@ The `daggler` CLI. Built with tsup into a self-contained Node ESM bundle.
 daggler lint [paths...] [--json] [--quiet] [--no-color]
 daggler help
 daggler --version
+daggler bridge   # (planned) starts the local runner bridge for nektos/act integration
 ```
 
 Running `daggler lint` with no arguments scans `.github/workflows/`. If that directory does not exist, it falls back to the bundled sample workflows as a demo. With `--json` it emits a structured JSON array of per-file results. Exit code 1 when any errors are found.
@@ -130,15 +136,15 @@ A Drizzle ORM Postgres schema covering the full relational model for the self-ho
 
 ## The confidence ladder
 
-The top bar of the editor shows three rungs:
+The top bar of the editor shows three rungs, implemented in `@daggler/runner-protocol`:
 
-| Rung | Label | What it does |
-|---|---|---|
-| 1 | **Static** | Runs the full parse → validate pipeline entirely client-side. Real and live — updates on every keystroke. No runner or GitHub connection needed. |
-| 2 | **Local** | Simulates job execution order in the browser using topological sort. Marked as `(simulated)` — connect a self-hosted runner bridge to convert this into a real local run. |
-| 3 | **GitHub** | Simulates a GitHub Actions run in the browser. Marked as `(simulated)` — install the GitHub App and connect a repository to forward actual dispatches to GitHub. |
+| Rung | Id | Adapter | Status |
+|---|---|---|---|
+| 1 | `static` | `AnalyzerAdapter` | Fully implemented. Runs `parseWorkflow` + `validateWorkflow` in-process; no external deps. Always available; updates live on every keystroke. |
+| 2 | `local` | `ActAdapter` | Requires the `daggler bridge` with nektos/act and Docker. Until the bridge is running, reports `NotConnectedError`. Start with: `npx daggler bridge`. |
+| 3 | `github` | `GitHubDispatchAdapter` | Requires a connected GitHub App. Results are authoritative ground truth. Until an App is installed and connected, reports `NotConnectedError`. |
 
-Static analysis is fully functional today. Local and GitHub rungs are simulated until you wire up the respective integrations.
+Static analysis is fully functional today. Local and GitHub rungs report `NotConnectedError` with a clear message until the respective integrations are wired up; they never return fake results.
 
 ---
 

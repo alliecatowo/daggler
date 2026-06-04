@@ -22,6 +22,7 @@ import type { Diagnostic } from "@daggler/validators";
 import pc from "picocolors";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { runBridge } from "./bridge.js";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -286,6 +287,7 @@ function printHelp(): void {
   process.stdout.write(
     `  ${bold("Usage")}\n` +
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "lint")} ${dim("[paths...] [flags]")}\n` +
+      `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "bridge")}\n` +
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "help")}\n` +
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "--version")}\n`,
   );
@@ -525,6 +527,12 @@ async function main(): Promise<void> {
   // lint
   if (command === "lint") {
     const exitCode = await runLint(argv.slice(1));
+    process.exit(exitCode);
+  }
+
+  // bridge — local capability probe
+  if (command === "bridge") {
+    const exitCode = await runBridge(argv.slice(1));
     process.exit(exitCode);
   }
 
