@@ -4,6 +4,19 @@
 
 Daggler parses GitHub Actions YAML into a typed intermediate representation, projects it into a dependency graph, runs a layered validator against it, and surfaces the results in an interactive browser editor and a terminal linter. The entire semantic pipeline — parse, IR, graph, validate — is pure, isomorphic TypeScript that runs client-side with no backend required.
 
+<p align="center">
+  <img src="docs/images/editor.png" alt="The Daggler editor: a live job graph, Monaco YAML with source-mapped diagnostics, a typed inspector, the confidence ladder, and one-click security quick-fixes." width="100%">
+</p>
+
+<p align="center"><sub>The editor — a live job DAG, Monaco YAML with source-mapped diagnostics, a typed inspector, the confidence ladder, and one-click quick-fixes. Everything runs client-side on the real engine.</sub></p>
+
+<table>
+<tr>
+<td width="50%"><img src="docs/images/security.png" alt="Security view: the Triage Agent workflow graded F, with AGENT001 agentic-injection findings."><br><sub align="center"><b>Security posture &amp; agentic-injection detection</b> — an AI-agent workflow graded <code>F</code>, with <code>AGENT001</code>/<code>POL003</code> findings.</sub></td>
+<td width="50%"><img src="docs/images/landing.png" alt="The Daggler landing page."><br><sub align="center"><b>Self-hostable, no lock-in</b> — native GitHub Actions YAML in, native YAML out.</sub></td>
+</tr>
+</table>
+
 ---
 
 ## Product thesis
