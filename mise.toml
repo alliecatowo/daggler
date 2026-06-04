@@ -1,0 +1,4 @@
+[tools]
+pnpm = "latest"
+uv = "latest"
+node = "latest"
