@@ -17,6 +17,12 @@ Daggler parses GitHub Actions YAML into a typed intermediate representation, pro
 </tr>
 </table>
 
+<p align="center">
+  <img src="docs/images/live-run.png" alt="The confidence ladder's Local rung: the self-hosted server runs act against Docker and streams the real plan back into the editor's Run panel." width="100%">
+</p>
+
+<p align="center"><sub>The confidence ladder is real. Clicking <b>Local</b> posts the workflow to a Next route handler that runs <code>act</code> against Docker and streams the actual plan into the editor's Run panel — honest "simulated until you connect a runner" labeling, never faked.</sub></p>
+
 ---
 
 ## Product thesis
