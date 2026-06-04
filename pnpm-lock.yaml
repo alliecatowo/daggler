@@ -29,6 +29,12 @@ importers:
 
   apps/cli:
     dependencies:
+      '@daggler/github':
+        specifier: workspace:*
+        version: link:../../packages/github
+      '@daggler/inventory':
+        specifier: workspace:*
+        version: link:../../packages/inventory
       '@daggler/runner':
         specifier: workspace:*
         version: link:../../packages/runner
@@ -135,6 +141,22 @@ importers:
 
   packages/github:
     dependencies:
+      '@daggler/workflow-ir':
+        specifier: workspace:*
+        version: link:../workflow-ir
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.19.19)
+
+  packages/inventory:
+    dependencies:
+      '@daggler/validators':
+        specifier: workspace:*
+        version: link:../validators
       '@daggler/workflow-ir':
         specifier: workspace:*
         version: link:../workflow-ir

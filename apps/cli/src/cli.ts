@@ -27,6 +27,8 @@ import * as path from "node:path";
 import { runBridge } from "./bridge.js";
 import { runVerify } from "./verify.js";
 import { runRun } from "./run.js";
+import { runMap } from "./map.js";
+import { runSearch } from "./search.js";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -293,6 +295,8 @@ function printHelp(): void {
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "lint")}   ${dim("[paths...] [flags]")}\n` +
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "verify")} ${dim("[paths...] [--json]")}\n` +
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "run")}    ${dim("<file> [--static|--local|--github] [--full] [--repo R] [--ref REF]")}\n` +
+      `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "map")}    ${dim("[dir | owner/repo] [--json]")}\n` +
+      `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "search")} ${dim("<query> [--limit N]")}\n` +
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "bridge")}\n` +
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "help")}\n` +
       `    ${paint(pc.cyan, "daggler")} ${paint(pc.green as (s: string) => string, "--version")}\n`,
@@ -303,6 +307,8 @@ function printHelp(): void {
       `    ${paint(pc.green as (s: string) => string, "lint")}    Static analysis + security scoring\n` +
       `    ${paint(pc.green as (s: string) => string, "verify")}  Daggler + actionlint cross-check\n` +
       `    ${paint(pc.green as (s: string) => string, "run")}     Execute via the confidence ladder (static → local → github)\n` +
+      `    ${paint(pc.green as (s: string) => string, "map")}     Repository automation map (local or owner/repo via gh)\n` +
+      `    ${paint(pc.green as (s: string) => string, "search")}  Find actions in the GitHub ecosystem\n` +
       `    ${paint(pc.green as (s: string) => string, "bridge")}  Local capability probe\n`,
   );
   process.stdout.write("\n");
@@ -568,6 +574,18 @@ async function main(): Promise<void> {
   // bridge — local capability probe
   if (command === "bridge") {
     const exitCode = await runBridge(argv.slice(1));
+    process.exit(exitCode);
+  }
+
+  // map — repository automation map (local dir or owner/repo via gh)
+  if (command === "map") {
+    const exitCode = await runMap(argv.slice(1));
+    process.exit(exitCode);
+  }
+
+  // search — find actions in the GitHub ecosystem
+  if (command === "search") {
+    const exitCode = await runSearch(argv.slice(1));
     process.exit(exitCode);
   }
 

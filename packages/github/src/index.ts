@@ -18,3 +18,5 @@ export type {
 
 export type { AdapterSeed, RepoSeed } from "./in-memory.js";
 export { InMemoryGitHubAdapter } from "./in-memory.js";
+
+export { GhCliAdapter } from "./gh-cli.js";
