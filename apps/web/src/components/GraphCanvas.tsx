@@ -100,7 +100,7 @@ function buildLayout(nodes: JobGraphNode[]): { pos: PosMap; canvasW: number; can
 // GraphCanvas component
 // ---------------------------------------------------------------------------
 export function GraphCanvas() {
-  const { analysis, selected, setSelected, runState } = useEditor();
+  const { analysis, selected, setSelected, runState, simulateResult } = useEditor();
   const { ir, graph, diagByPath, jobSeverity } = analysis;
 
   // Compute layout from the graph nodes (depth is pre-computed by buildGraph).
@@ -281,11 +281,15 @@ export function GraphCanvas() {
             }
           }
 
+          // Simulate overlay: dim/highlight based on event simulation decision.
+          const simDec = simulateResult?.jobs[node.id]?.decision;
+
           // Node CSS classes.
           const sel = isJobSel(node.id);
           let cls = "jobnode";
           if (sel) cls += " jobnode--sel";
           if (runStatus) cls += ` jobnode--${runStatus}`;
+          if (simDec) cls += ` jobnode--sim-${simDec}`;
 
           // Dot class reflects run status or defaults to "idle".
           const dotCls = `jobnode__dot ${runStatus ?? "idle"}`;

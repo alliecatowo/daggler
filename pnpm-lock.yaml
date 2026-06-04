@@ -57,6 +57,15 @@ importers:
 
   apps/web:
     dependencies:
+      '@daggler/runner':
+        specifier: workspace:*
+        version: link:../../packages/runner
+      '@daggler/runner-protocol':
+        specifier: workspace:*
+        version: link:../../packages/runner-protocol
+      '@daggler/simulate':
+        specifier: workspace:*
+        version: link:../../packages/simulate
       '@daggler/validators':
         specifier: workspace:*
         version: link:../../packages/validators
@@ -161,6 +170,19 @@ importers:
       '@daggler/validators':
         specifier: workspace:*
         version: link:../validators
+      '@daggler/workflow-ir':
+        specifier: workspace:*
+        version: link:../workflow-ir
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.19.19)
+
+  packages/simulate:
+    dependencies:
       '@daggler/workflow-ir':
         specifier: workspace:*
         version: link:../workflow-ir

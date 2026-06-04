@@ -11,6 +11,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { prettyPath } from "@daggler/workflow-ir";
 import { useEditor, type RunMode } from "../lib/store";
 import { pathToSelection } from "../lib/selection";
+import { RunPanel } from "./RunPanel";
 import {
   LogoMark,
   BranchIcon,
@@ -35,7 +36,7 @@ const RUNGS: { id: RunMode; label: string; sub: string }[] = [
 ];
 
 function ConfidenceLadder(): ReactNode {
-  const { runState, runMode, runSimulation } = useEditor();
+  const { runState, runMode, runSimulation, runViaApi } = useEditor();
 
   return (
     <div className="ladder" role="group" aria-label="Confidence">
@@ -52,7 +53,7 @@ function ConfidenceLadder(): ReactNode {
           <button
             key={r.id}
             className={cls}
-            onClick={() => runSimulation(r.id)}
+            onClick={() => r.id === "static" ? runSimulation(r.id) : runViaApi(r.id)}
             title={r.sub}
           >
             {/* numbered level badge */}
@@ -262,42 +263,62 @@ export function LeftRail(): ReactNode {
 // DiagnosticsPanel
 // ============================================================================
 
-/** Collapsible bottom panel listing all diagnostics. */
+/** Collapsible bottom panel with Diagnostics + Run tabs. */
 export function DiagnosticsPanel(): ReactNode {
-  const { analysis, diagOpen, setDiagOpen, setSelected } = useEditor();
+  const { analysis, diagOpen, setDiagOpen, setSelected, lastRun } = useEditor();
   const { diagnostics, counts } = analysis.validation;
+  const [activeTab, setActiveTab] = useState<"diagnostics" | "run">("diagnostics");
+
+  // Switch to Run tab automatically when a new run result arrives.
+  useEffect(() => {
+    if (lastRun) setActiveTab("run");
+  }, [lastRun]);
 
   return (
     <div className={"ed-bottom" + (diagOpen ? " is-open" : "")}>
       {/* Header — always visible, toggles open/closed */}
-      <button
-        className="ed-bottom__head"
-        onClick={() => setDiagOpen(!diagOpen)}
-        aria-expanded={diagOpen}
-      >
-        <span className="ed-bottom__title">Diagnostics</span>
-
-        {/* Severity counts */}
-        <span className="ed-bottom__counts">
-          {counts.error > 0 && (
-            <span className="ed-cnt sev-error">● {counts.error}</span>
+      <div className="ed-bottom__head-row">
+        {/* Tab buttons */}
+        <button
+          className={"ed-bottom__tab" + (activeTab === "diagnostics" ? " is-active" : "")}
+          onClick={() => { setActiveTab("diagnostics"); setDiagOpen(true); }}
+        >
+          Diagnostics
+          <span className="ed-bottom__counts">
+            {counts.error > 0 && (
+              <span className="ed-cnt sev-error">● {counts.error}</span>
+            )}
+            {counts.warning > 0 && (
+              <span className="ed-cnt sev-warning">● {counts.warning}</span>
+            )}
+          </span>
+        </button>
+        <button
+          className={"ed-bottom__tab" + (activeTab === "run" ? " is-active" : "")}
+          onClick={() => { setActiveTab("run"); setDiagOpen(true); }}
+        >
+          Run
+          {lastRun && (
+            <span className={`ed-cnt ed-cnt--run sev-${lastRun.status === "passed" || lastRun.status === "ok" ? "info" : lastRun.status === "unavailable" ? "warning" : "error"}`}>
+              ● {lastRun.status}
+            </span>
           )}
-          {counts.warning > 0 && (
-            <span className="ed-cnt sev-warning">● {counts.warning}</span>
-          )}
-          {counts.info > 0 && (
-            <span className="ed-cnt sev-info">● {counts.info}</span>
-          )}
-        </span>
+        </button>
+        {/* Toggle collapse */}
+        <button
+          className="ed-bottom__toggle"
+          onClick={() => setDiagOpen(!diagOpen)}
+          aria-expanded={diagOpen}
+          aria-label={diagOpen ? "Collapse panel" : "Expand panel"}
+        >
+          <span className="ed-bottom__chev" aria-hidden>
+            {diagOpen ? "▾" : "▴"}
+          </span>
+        </button>
+      </div>
 
-        {/* Chevron indicates collapsed / expanded */}
-        <span className="ed-bottom__chev" aria-hidden>
-          {diagOpen ? "▾" : "▴"}
-        </span>
-      </button>
-
-      {/* Diagnostic rows — rendered only when open */}
-      {diagOpen && (
+      {/* Panel body — rendered only when open */}
+      {diagOpen && activeTab === "diagnostics" && (
         <div className="ed-bottom__list scroll" role="list">
           {diagnostics.map((d) => (
             <button
@@ -321,6 +342,8 @@ export function DiagnosticsPanel(): ReactNode {
           ))}
         </div>
       )}
+
+      {diagOpen && activeTab === "run" && <RunPanel />}
     </div>
   );
 }
@@ -344,6 +367,8 @@ export function CommandPalette(): ReactNode {
     setPalOpen,
     setView,
     runSimulation,
+    runViaApi,
+    runEventSimulate,
     analysis,
     applyQuickFix,
     pushToast,
@@ -387,13 +412,19 @@ export function CommandPalette(): ReactNode {
       label: "Run locally (approximate)",
       hint: "local",
       icon: "▷",
-      run: () => { runSimulation("local"); setPalOpen(false); },
+      run: () => { runViaApi("local"); setPalOpen(false); },
     },
     {
       label: "Prove on GitHub",
       hint: "github",
       icon: "◆",
-      run: () => { runSimulation("github"); setPalOpen(false); },
+      run: () => { runViaApi("github"); setPalOpen(false); },
+    },
+    {
+      label: "Simulate event (pull_request@main)",
+      hint: "simulate",
+      icon: "⚡",
+      run: () => { runEventSimulate(); setPalOpen(false); },
     },
     {
       label: "Switch to Graph view",

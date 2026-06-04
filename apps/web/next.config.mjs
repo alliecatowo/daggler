@@ -1,7 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ["@daggler/workflow-ir", "@daggler/validators", "@daggler/db"],
+  transpilePackages: [
+    "@daggler/workflow-ir",
+    "@daggler/validators",
+    "@daggler/db",
+    "@daggler/runner",
+    "@daggler/runner-protocol",
+    "@daggler/simulate",
+  ],
   eslint: {
     ignoreDuringBuilds: true,
   },

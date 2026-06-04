@@ -790,4 +790,47 @@ a.btn { text-decoration: none; }
 
 /* Monaco line decoration for the cross-highlighted node span */
 .yaml-sel-deco { background: var(--accent-soft); }
+
+/* ---- Bottom panel tab bar ----------------------------------------------- */
+.ed-bottom__head-row { display: flex; align-items: center; border-bottom: 1px solid var(--border-soft); }
+.ed-bottom__tab { display: flex; align-items: center; gap: 8px; padding: 7px 14px; background: transparent; border: none; border-bottom: 2px solid transparent; font: inherit; font-size: 12px; font-weight: 600; color: var(--text-faint); cursor: pointer; }
+.ed-bottom__tab.is-active { color: var(--text-hi); border-bottom-color: var(--accent); }
+.ed-bottom__tab:hover:not(.is-active) { color: var(--text-mid); }
+.ed-cnt--run { margin-left: 4px; }
+.ed-bottom__toggle { margin-left: auto; padding: 7px 12px; background: transparent; border: none; cursor: pointer; color: var(--text-faint); }
+.ed-bottom__toggle:hover { color: var(--text-mid); }
+
+/* ---- Run panel ---------------------------------------------------------- */
+.run-panel { max-height: 220px; overflow-y: auto; padding: 8px 0; }
+.run-panel__empty { padding: 16px 18px; font-size: 12px; color: var(--text-faint); }
+.run-panel__section { border-bottom: 1px solid var(--border-soft); padding: 8px 16px 10px; }
+.run-panel__section:last-child { border-bottom: none; }
+.run-panel__sec-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.run-panel__sec-title { font-size: 11.5px; font-weight: 600; color: var(--text-hi); }
+.run-panel__sec-badge { font-size: 10px; padding: 1px 6px; border-radius: 99px; background: var(--bg-3); color: var(--text-mid); }
+.run-panel__re-run { margin-left: auto; font-size: 11px; padding: 2px 8px; }
+.run-panel__status-dot { width: 7px; height: 7px; border-radius: 99px; flex: 0 0 auto; }
+.run-panel__status-dot--passed,.run-panel__status-dot--ok { background: var(--ok); }
+.run-panel__status-dot--error,.run-panel__status-dot--failed { background: var(--danger); }
+.run-panel__status-dot--unavailable,.run-panel__status-dot--skip { background: var(--warn); }
+.run-panel__status-dot--queued { background: var(--accent); }
+.run-panel__summary { font-size: 12px; color: var(--text-mid); margin-bottom: 6px; }
+.run-panel__logs { font-size: 11px; display: flex; flex-direction: column; gap: 2px; background: var(--bg-inset); border-radius: var(--r-sm,4px); padding: 6px 8px; max-height: 100px; overflow-y: auto; }
+.run-panel__log-line { display: flex; gap: 8px; color: var(--text-mid); }
+.run-panel__log-line--error { color: var(--danger); }
+.run-panel__log-line--warn,.run-panel__log-line--warning { color: var(--warn); }
+.run-panel__log-lvl { min-width: 36px; color: var(--text-faint); }
+.run-panel__sim-jobs { display: flex; flex-direction: column; gap: 2px; }
+.run-panel__sim-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12px; }
+.run-panel__sim-row--run { color: var(--ok); }
+.run-panel__sim-row--skip { color: var(--text-faint); }
+.run-panel__sim-row--unknown { color: var(--warn); }
+.run-panel__sim-icon { width: 14px; text-align: center; font-size: 11px; }
+.run-panel__sim-job { color: var(--text-hi); min-width: 100px; }
+.run-panel__sim-reason { font-size: 11px; color: var(--text-faint); }
+
+/* ---- Simulate overlay on graph nodes ------------------------------------ */
+.jobnode--sim-skip { opacity: 0.45; }
+.jobnode--sim-run .jobnode__bar { background: var(--ok); }
+.jobnode--sim-unknown .jobnode__bar { background: var(--warn); }
 .yaml-sel-gutter { background: var(--accent); width: 2px !important; margin-left: 2px; }

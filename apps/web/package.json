@@ -12,6 +12,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@daggler/runner": "workspace:*",
+    "@daggler/runner-protocol": "workspace:*",
+    "@daggler/simulate": "workspace:*",
     "@daggler/validators": "workspace:*",
     "@daggler/workflow-ir": "workspace:*",
     "@monaco-editor/react": "^4.6.0",

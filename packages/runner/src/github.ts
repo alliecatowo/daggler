@@ -235,30 +235,42 @@ export class GitHubDispatchAdapter implements RunnerPort {
     run: GhRunListItem,
     logs: RunnerLogEvent[] = [],
   ): RunnerRunResult {
-    const conclusion = run.conclusion ?? run.status ?? "unknown";
+    // Determine the effective state: prefer conclusion (set when the run is
+    // done) but fall back to status (set while the run is still alive).
+    const rawStatus = run.status ?? "unknown";
+    const conclusion = run.conclusion ?? null; // null means "not yet concluded"
+
     let status: RunnerRunResult["status"];
-    switch (conclusion) {
-      case "success":
-        status = "success";
-        break;
-      case "failure":
-      case "cancelled":
-      case "timed_out":
-        status = "failure";
-        break;
-      case "queued":
-      case "in_progress":
-      case "waiting":
+
+    if (conclusion === "success") {
+      status = "success";
+    } else if (
+      conclusion === "failure" ||
+      conclusion === "timed_out" ||
+      conclusion === "cancelled"
+    ) {
+      status = "failure";
+    } else if (conclusion === null) {
+      // Run is still alive — map the live status honestly.
+      if (rawStatus === "queued" || rawStatus === "waiting") {
+        status = "queued";
+      } else if (rawStatus === "in_progress") {
         status = "running";
-        break;
-      default:
-        status = "error";
+      } else {
+        // Unexpected live state — surface as "queued" rather than "error".
+        status = "queued";
+      }
+    } else {
+      // Unexpected concluded state.
+      status = "error";
     }
+
+    const displayState = conclusion ?? rawStatus;
 
     return {
       status,
       logs,
-      summary: `GitHub run #${run.databaseId ?? "?"}: ${conclusion} (${run.event ?? "?"}, sha ${(run.headSha ?? "?").slice(0, 7)})`,
+      summary: `GitHub run #${run.databaseId ?? "?"}: ${displayState} (${run.event ?? "?"}, sha ${(run.headSha ?? "?").slice(0, 7)})`,
     };
   }
 }

@@ -65,6 +65,26 @@ export interface RunState {
   simulated: boolean;
 }
 
+export interface RunLogLine {
+  level: string;
+  message: string;
+}
+
+export interface LastRun {
+  mode: RunMode;
+  status: string;
+  summary: string;
+  logs: RunLogLine[];
+}
+
+export type SimulateDecision = "run" | "skip" | "unknown";
+
+export interface SimulateResult {
+  triggered: boolean;
+  triggerReason: string;
+  jobs: Record<string, { decision: SimulateDecision; reason: string }>;
+}
+
 export interface Toast {
   id: number;
   text: string;
@@ -96,6 +116,8 @@ export interface EditorApi {
   runState: RunState | null;
   runMode: RunMode;
   toasts: Toast[];
+  lastRun: LastRun | null;
+  simulateResult: SimulateResult | null;
   // mutations
   selectWorkflow: (id: string) => void;
   setSource: (next: string) => void;
@@ -103,6 +125,8 @@ export interface EditorApi {
   applyQuickFix: (diag: Diagnostic) => void;
   resetActive: () => void;
   runSimulation: (mode: RunMode) => void;
+  runViaApi: (mode: RunMode) => void;
+  runEventSimulate: () => void;
   pushToast: (text: string) => void;
 }
 
@@ -154,6 +178,8 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   const [runState, setRunState] = useState<RunState | null>(null);
   const [runMode, setRunMode] = useState<RunMode>("static");
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [lastRun, setLastRun] = useState<LastRun | null>(null);
+  const [simulateResult, setSimulateResult] = useState<SimulateResult | null>(null);
   const toastId = useRef(0);
   const runTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
@@ -188,6 +214,8 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     setSelected(null);
     setSelectedAction(null);
     setRunState(null);
+    setLastRun(null);
+    setSimulateResult(null);
   }, []);
 
   const setSource = useCallback(
@@ -313,6 +341,99 @@ export function EditorProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => () => runTimers.current.forEach(clearTimeout), []);
 
+  // ---------------------------------------------------------------------------
+  // runViaApi — POST to /api/run for local/github; static hits the API for a
+  // real actionlint pass. The visual job animation still fires in parallel.
+  // ---------------------------------------------------------------------------
+  const runViaApi = useCallback(
+    (mode: RunMode) => {
+      // Always kick the visual animation so the graph is live.
+      runSimulation(mode);
+
+      if (mode === "static") {
+        // Static is already handled by runSimulation (live analysis) — no API call needed.
+        return;
+      }
+
+      const body = {
+        yaml: source,
+        mode,
+        path: active.path,
+      };
+
+      fetch("/api/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+        .then(async (res) => {
+          const data = (await res.json()) as {
+            status: string;
+            summary: string;
+            logs?: { level: string; message: string }[];
+          };
+          const run: LastRun = {
+            mode,
+            status: data.status,
+            summary: data.summary,
+            logs: data.logs ?? [],
+          };
+          setLastRun(run);
+          if (data.status === "unavailable") {
+            pushToast(data.summary);
+          }
+        })
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          setLastRun({
+            mode,
+            status: "error",
+            summary: `API request failed: ${msg}`,
+            logs: [],
+          });
+          pushToast(`Run failed: ${msg}`);
+        });
+    },
+    [runSimulation, source, active.path, pushToast],
+  );
+
+  // ---------------------------------------------------------------------------
+  // runEventSimulate — client-side event simulation using @daggler/simulate.
+  // Pure, no network call. Overlays decision on simulateResult so GraphCanvas
+  // can dim skipped jobs.
+  // ---------------------------------------------------------------------------
+  const runEventSimulate = useCallback(() => {
+    // Lazy import keeps the bundle clean; simulate is pure ESM, safe in browser.
+    import("@daggler/simulate")
+      .then(({ simulateEvent }) => {
+        const fixture = { event: "pull_request", ref: "refs/heads/main" };
+        const result = simulateEvent(analysis.ir, fixture);
+        const sr: SimulateResult = {
+          triggered: result.triggered,
+          triggerReason: result.triggerReason,
+          jobs: result.jobs,
+        };
+        setSimulateResult(sr);
+        if (!result.triggered) {
+          pushToast(`Event not triggered: ${result.triggerReason}`);
+        } else {
+          const runCount = Object.values(result.jobs).filter(
+            (j) => j.decision === "run",
+          ).length;
+          const skipCount = Object.values(result.jobs).filter(
+            (j) => j.decision === "skip",
+          ).length;
+          pushToast(
+            `Simulate pull_request@main: ${runCount} run, ${skipCount} skip`,
+          );
+        }
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        pushToast(`Simulate error: ${msg}`);
+      });
+  }, [analysis.ir, pushToast]);
+
   const api: EditorApi = {
     workflows,
     activeId,
@@ -337,12 +458,16 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     runState,
     runMode,
     toasts,
+    lastRun,
+    simulateResult,
     selectWorkflow,
     setSource,
     applyEdit,
     applyQuickFix,
     resetActive,
     runSimulation,
+    runViaApi,
+    runEventSimulate,
     pushToast,
   };
 
