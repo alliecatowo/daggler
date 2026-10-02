@@ -44,14 +44,18 @@ GitHub Actions workflows are code. Daggler treats them that way:
 ```
 daggler/
 ├── apps/
-│   ├── cli/                  # daggler lint / daggler bridge — terminal linter (tsup → Node ESM)
+│   ├── cli/                  # daggler lint / verify / run / map / search / logs / bridge (tsup → Node ESM)
 │   ├── web/                  # Next.js 15 + React 19 editor (runs engine client-side)
 │   └── worker/               # Graphile Worker job registry (parse, validate, sync stubs)
 ├── packages/
 │   ├── workflow-ir/          # parser → IR → graph → serialize → patches
 │   ├── validators/           # 5-layer validator + policy engine + actions catalog
 │   ├── runner-protocol/      # RunnerPort + confidence ladder (AnalyzerAdapter, ActAdapter, GitHubDispatchAdapter)
-│   ├── github/               # GitHubRepositoryPort + InMemoryGitHubAdapter
+│   ├── github/               # GitHubRepositoryPort + InMemoryGitHubAdapter + GhCliAdapter
+│   ├── ai/                   # AI assistant core: prompt construction, schema validation, edit application
+│   ├── inventory/            # repo automation-map engine
+│   ├── runner/               # Node-only adapters shelling out to actionlint / act / gh
+│   ├── simulate/             # event-simulation engine (which jobs run for a given event)
 │   └── db/                   # Drizzle ORM Postgres schema (self-host persistence)
 ├── ARCHITECTURE.md
 ├── CHANGELOG.md
@@ -129,7 +133,8 @@ The `daggler` CLI. Built with tsup into a self-contained Node ESM bundle.
 daggler lint [paths...] [--json] [--quiet] [--no-color]
 daggler help
 daggler --version
-daggler bridge   # (planned) starts the local runner bridge for nektos/act integration
+daggler verify | run | map | search | logs   # see `daggler help`
+daggler bridge   # local capability probe (pairing with the cloud app is not implemented yet)
 ```
 
 Running `daggler lint` with no arguments scans `.github/workflows/`. If that directory does not exist, it falls back to the bundled sample workflows as a demo. With `--json` it emits a structured JSON array of per-file results. Exit code 1 when any errors are found.
@@ -147,7 +152,7 @@ The top bar of the editor shows three rungs, implemented in `@daggler/runner-pro
 | Rung | Id | Adapter | Status |
 |---|---|---|---|
 | 1 | `static` | `AnalyzerAdapter` | Fully implemented. Runs `parseWorkflow` + `validateWorkflow` in-process; no external deps. Always available; updates live on every keystroke. |
-| 2 | `local` | `ActAdapter` | Requires the `daggler bridge` with nektos/act and Docker. Until the bridge is running, reports `NotConnectedError`. Start with: `npx daggler bridge`. |
+| 2 | `local` | `ActAdapter` | Requires nektos/act and Docker. `daggler bridge` currently only probes which local tools are available (pairing is not implemented); the web app's Local run spawns `act` from its server route. |
 | 3 | `github` | `GitHubDispatchAdapter` | Requires a connected GitHub App. Results are authoritative ground truth. Until an App is installed and connected, reports `NotConnectedError`. |
 
 Static analysis is fully functional today. Local and GitHub rungs report `NotConnectedError` with a clear message until the respective integrations are wired up; they never return fake results.
@@ -213,14 +218,14 @@ The following test suites pass and are treated as contracts. Do not break them.
 
 ## Self-hosting with Docker
 
-A `docker compose` setup is intended for teams that want to persist workflows, run server-side validation, and integrate the GitHub App. The `@daggler/db` schema targets Postgres.
+A `docker compose` setup is planned for teams that want to persist workflows, run server-side validation, and integrate the GitHub App. The `@daggler/db` schema targets Postgres.
 
 ```bash
-# (Coming: docker compose up)
+# (Coming: docker compose up) — the docker-compose.yml in this repo is a placeholder and does not work yet.
 # Sets DATABASE_URL and starts the Next.js app against your Postgres instance.
 ```
 
-The standalone web editor (no database, no GitHub App) requires only Node and a static file host.
+For now, self-hosting means running the web app yourself with `pnpm --filter @daggler/web dev`. The standalone web editor (no database, no GitHub App) requires only Node.
 
 ---
 
