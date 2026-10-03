@@ -1,6 +1,8 @@
 # Daggler
 
-**A self-hostable semantic workbench for GitHub Actions.**
+**A semantic workbench for GitHub Actions.**
+
+[Docs](https://alliecatowo.github.io/daggler/) · [npm](https://www.npmjs.com/package/daggler-cli)
 
 Daggler parses GitHub Actions YAML into a typed intermediate representation, projects it into a dependency graph, runs a layered validator against it, and surfaces the results in an interactive browser editor and a terminal linter. The entire semantic pipeline — parse, IR, graph, validate — is pure, isomorphic TypeScript that runs client-side with no backend required.
 
@@ -217,16 +219,9 @@ The following test suites pass and are treated as contracts. Do not break them.
 
 ---
 
-## Self-hosting with Docker
+## Self-hosting
 
-A `docker compose` setup is planned for teams that want to persist workflows, run server-side validation, and integrate the GitHub App. The `@daggler/db` schema targets Postgres. The compose file uses `postgres:18-alpine`; upgrading an existing Postgres 16 volume needs a dump/restore, see [docs/upgrading-postgres.md](docs/upgrading-postgres.md).
-
-```bash
-# (Coming: docker compose up) — the docker-compose.yml in this repo is a placeholder and does not work yet.
-# Sets DATABASE_URL and starts the Next.js app against your Postgres instance.
-```
-
-For now, self-hosting means running the web app yourself with `pnpm --filter @daggler/web dev`. The standalone web editor (no database, no GitHub App) requires only Node.
+The standalone web editor needs only Node. A `docker-compose.yml` and Postgres schema exist, but the stack is incomplete (`apps/web/Dockerfile` is missing and the worker is a placeholder). See the [self-hosting status](https://alliecatowo.github.io/daggler/guide/self-hosting). The compose file uses `postgres:18-alpine`; to move an existing Postgres 16 volume see [docs/upgrading-postgres.md](docs/upgrading-postgres.md).
 
 ---
 
