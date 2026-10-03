@@ -188,8 +188,9 @@ pnpm --filter daggler-cli build
 # Lint your workflows (reads .github/workflows/ by default)
 ./apps/cli/dist/cli.js lint
 
-# Or install globally
-npm install -g ./apps/cli
+# Or install globally from npm
+npm install -g daggler-cli
+# (or from a checkout: npm install -g ./apps/cli)
 
 daggler lint
 daggler lint .github/workflows/ci.yml
