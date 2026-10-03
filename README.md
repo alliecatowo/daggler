@@ -219,7 +219,7 @@ The following test suites pass and are treated as contracts. Do not break them.
 
 ## Self-hosting with Docker
 
-A `docker compose` setup is planned for teams that want to persist workflows, run server-side validation, and integrate the GitHub App. The `@daggler/db` schema targets Postgres.
+A `docker compose` setup is planned for teams that want to persist workflows, run server-side validation, and integrate the GitHub App. The `@daggler/db` schema targets Postgres. The compose file uses `postgres:18-alpine`; upgrading an existing Postgres 16 volume needs a dump/restore, see [docs/upgrading-postgres.md](docs/upgrading-postgres.md).
 
 ```bash
 # (Coming: docker compose up) — the docker-compose.yml in this repo is a placeholder and does not work yet.
