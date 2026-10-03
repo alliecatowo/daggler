@@ -144,7 +144,7 @@ function tokenize(src: string): Token[] {
     // Identifiers / keywords
     if (/[a-zA-Z_]/.test(ch)) {
       let ident = "";
-      while (i < src.length && /[a-zA-Z0-9_\-]/.test(src[i] ?? "")) {
+      while (i < src.length && /[a-zA-Z0-9_-]/.test(src[i] ?? "")) {
         ident += src[i];
         i++;
       }

@@ -37,7 +37,7 @@ export function RunPanel(): ReactNode {
               {lastRun.mode} run
             </span>
             <span className="run-panel__sec-badge mono">{lastRun.status}</span>
-            <button
+            <button type="button"
               className="run-panel__re-run btn btn--sm"
               onClick={() => runViaApi(runMode === "static" ? "local" : runMode)}
               title="Re-run"
@@ -76,7 +76,7 @@ export function RunPanel(): ReactNode {
             <span className="run-panel__sec-badge mono">
               {simulateResult.triggered ? "triggered" : "not triggered"}
             </span>
-            <button
+            <button type="button"
               className="run-panel__re-run btn btn--sm"
               onClick={runEventSimulate}
               title="Re-simulate"

@@ -9,7 +9,7 @@
  * do — nothing more and nothing less. No results are faked.
  * ============================================================================ */
 
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import pc from "picocolors";
 
 // ---------------------------------------------------------------------------
@@ -98,9 +98,9 @@ const TOOLS: ToolSpec[] = [
 // ---------------------------------------------------------------------------
 
 /** Run a command synchronously; return stdout trimmed, or undefined on error. */
-function tryExec(cmd: string): string | undefined {
+function tryExec(file: string, args: string[]): string | undefined {
   try {
-    return execSync(cmd, { stdio: ["ignore", "pipe", "ignore"], timeout: 4000 })
+    return execFileSync(file, args, { stdio: ["ignore", "pipe", "ignore"], timeout: 4000 })
       .toString()
       .trim();
   } catch {
@@ -110,7 +110,7 @@ function tryExec(cmd: string): string | undefined {
 
 /** Probe a single tool: which → version. */
 function probe(spec: ToolSpec): ProbeResult {
-  const binPath = tryExec(`which ${spec.bin}`);
+  const binPath = tryExec("which", [spec.bin]);
   if (binPath === undefined || binPath === "") {
     return { spec, found: false };
   }
@@ -119,7 +119,7 @@ function probe(spec: ToolSpec): ProbeResult {
   if (spec.versionFlag !== undefined) {
     // Some tools (bash --version) write to stdout; actionlint -version too.
     // Capture the first non-empty line.
-    const raw = tryExec(`${spec.bin} ${spec.versionFlag} 2>/dev/null`);
+    const raw = tryExec(spec.bin, [spec.versionFlag]);
     if (raw !== undefined) {
       version = raw.split("\n")[0]?.trim();
     }

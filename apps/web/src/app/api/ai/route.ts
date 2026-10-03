@@ -13,7 +13,7 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { parseWorkflow } from "@daggler/workflow-ir";
 import { validateWorkflow } from "@daggler/validators";
 import {

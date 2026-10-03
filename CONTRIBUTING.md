@@ -117,7 +117,7 @@ When adding a feature, ask: does this belong in the domain core, a validator lay
 
 1. Branch from `main`.
 2. Keep PRs focused — one logical change per PR.
-3. Ensure `pnpm test`, `pnpm typecheck`, and `pnpm build` all pass locally.
+3. Ensure `pnpm lint`, `pnpm test`, `pnpm typecheck`, and `pnpm build` all pass locally.
 4. Write a clear description of *why* the change is needed, not just what it does.
 5. Update relevant tests; do not delete existing passing tests.
 

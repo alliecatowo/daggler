@@ -173,7 +173,7 @@ jobs:
         if (step.ref.refKind !== "tag") continue;
         const meta = lookupActionMeta(step.ref.owner, step.ref.repo);
         // Official actions (actions/*, github/*) are exempt.
-        if (meta && meta.official) continue;
+        if (meta?.official) continue;
         const action = step.uses;
         findings.push({
           code: "POL002",

@@ -8,7 +8,7 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { dispatchWebhook } from "@daggler/github";
 import { JOB_REGISTRY } from "@daggler/worker/registry";
 

@@ -24,8 +24,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - run: pnpm lint
+
       - run: pnpm -r typecheck
 
       - run: pnpm -r test
+
+      - run: pnpm --filter daggler-cli build
 
       - run: pnpm --filter @daggler/web build

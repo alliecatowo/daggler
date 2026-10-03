@@ -65,7 +65,7 @@ function WorkflowsTab() {
       <SideHead title="Workflows" count={workflows.length} />
       <div className="side-files">
         {workflows.map((w) => (
-          <button
+          <button type="button"
             key={w.id}
             className={"side-file" + (w.id === activeId ? " is-on" : "")}
             onClick={() => selectWorkflow(w.id)}
@@ -93,7 +93,7 @@ function WorkflowsTab() {
           return (
             <div key={j.id}>
               {/* Job row */}
-              <button
+              <button type="button"
                 className={"side-job" + (isJobSelected ? " is-on" : "")}
                 onClick={() => setSelected({ type: "job", id: j.id })}
               >
@@ -131,7 +131,7 @@ function WorkflowsTab() {
                     }
 
                     return (
-                      <button
+                      <button type="button"
                         key={i}
                         className="side-step"
                         onClick={(e) => {
@@ -255,7 +255,7 @@ function ActionsTab() {
           )}
 
           {/* Insert action into selected job */}
-          <button
+          <button type="button"
             className="action-insert-btn"
             onClick={() => insertActionStep(selectedAction!)}
             title={`Insert ${selectedAction} into the selected job`}
@@ -334,7 +334,7 @@ function ActionsTab() {
                 <span className={`side-action__trust ${trustClass}`}>
                   {trustLabel}
                 </span>
-                <button
+                <button type="button"
                   className="action-insert-icon"
                   title={`Insert ${step.uses} into selected job`}
                   onClick={(e) => {
@@ -388,7 +388,7 @@ function TemplatesTab() {
         <div key={grp.category} className="side-tplgroup">
           <div className="side-tplgroup__h">{grp.category}</div>
           {grp.items.map((t) => (
-            <button
+            <button type="button"
               key={t.id}
               className="side-tpl"
               title={t.description}
@@ -475,7 +475,7 @@ function DiagnosticsTab() {
       <SideHead title="Diagnostics" count={diagnostics.length} />
       <div className="side-diaglist">
         {diagnostics.map((d, i) => (
-          <button
+          <button type="button"
             key={d.id ?? i}
             className="side-diag"
             onClick={() => setSelected(pathToSelection(d.path))}

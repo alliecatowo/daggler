@@ -277,8 +277,7 @@ export default function LandingPage() {
             <a className="nav__link" href="#product">Product</a>
             <a className="nav__link" href="#security">Security</a>
             <a className="nav__link" href="#selfhost">Self-host</a>
-            <a className="nav__link" href="#">Docs</a>
-            <a className="nav__link" href="#">Pricing</a>
+            <a className="nav__link" href="https://alliecatowo.github.io/daggler/" rel="noopener noreferrer">Docs</a>
             <Link className="nav__link" href="/map">Automation map</Link>
           </nav>
 
@@ -296,7 +295,7 @@ export default function LandingPage() {
             </a>
 
             {/* Theme toggle — persists to localStorage */}
-            <button
+            <button type="button"
               className="btn btn--ghost btn--sm"
               onClick={toggleTheme}
               aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
@@ -465,7 +464,7 @@ export default function LandingPage() {
           ================================================================ */}
       <div className="wrap trust">
         <div className="trust__label">Reads the workflows you already have</div>
-        <div className="trust__row" aria-label="Ecosystems supported">
+        <div className="trust__row" role="group" aria-label="Ecosystems supported">
           <span>Vercel</span>
           <span>Neon</span>
           <span>Drizzle</span>
@@ -773,10 +772,10 @@ export default function LandingPage() {
               </div>
               <div className="footer__col">
                 <h5>Resources</h5>
-                <a href="#">Docs</a>
+                <a href="https://alliecatowo.github.io/daggler/" rel="noopener noreferrer">Docs</a>
                 <a href="#selfhost">Self-host</a>
-                <a href="#">Bridge CLI</a>
-                <a href="#">Changelog</a>
+                <a href="https://alliecatowo.github.io/daggler/guide/getting-started" rel="noopener noreferrer">CLI</a>
+                <a href="https://github.com/alliecatowo/daggler/blob/main/CHANGELOG.md" rel="noopener noreferrer">Changelog</a>
               </div>
               <div className="footer__col">
                 <h5>Company</h5>
@@ -787,8 +786,8 @@ export default function LandingPage() {
                 >
                   GitHub
                 </a>
-                <a href="#">License (MIT)</a>
-                <a href="#">Discussions</a>
+                <a href="https://github.com/alliecatowo/daggler/blob/main/LICENSE" rel="noopener noreferrer">License (MIT)</a>
+                <a href="https://github.com/alliecatowo/daggler/issues" rel="noopener noreferrer">Issues</a>
               </div>
             </div>
           </div>

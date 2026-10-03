@@ -25,7 +25,7 @@ export const checkActions: ValidationLayer = (ctx) => {
   const findings: RawFinding[] = [];
 
   // ── Per-step checks (ACT001–ACT004) ───────────────────────────────────────
-  for (const { job, step } of eachUsesStep(ctx.ir)) {
+  for (const { step } of eachUsesStep(ctx.ir)) {
     // Only analyse remote action references — local / docker are out of scope.
     if (step.ref.kind !== "remote") continue;
 

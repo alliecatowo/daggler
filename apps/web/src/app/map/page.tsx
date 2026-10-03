@@ -119,7 +119,7 @@ function WorkflowCard({ wf }: { wf: WorkflowSummary }) {
           <div className="map-wfcard__path mono">{wf.path}</div>
         </div>
 
-        <button
+        <button type="button"
           className="btn btn--ghost btn--sm"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}

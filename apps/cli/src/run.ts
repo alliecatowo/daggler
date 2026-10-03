@@ -148,7 +148,6 @@ export async function runRun(args: string[]): Promise<number> {
   const flagNoColor = args.includes("--no-color");
   if (flagNoColor) colorEnabled = false;
 
-  const flagStatic = args.includes("--static");
   const flagLocal = args.includes("--local");
   const flagGitHub = args.includes("--github");
   const flagFull = args.includes("--full");
