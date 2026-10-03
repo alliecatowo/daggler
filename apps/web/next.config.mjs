@@ -13,9 +13,6 @@ const nextConfig = {
     "@daggler/simulate",
     "@daggler/worker",
   ],
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     // Types are checked by `pnpm typecheck`; don't block production builds on it.
     ignoreBuildErrors: false,
