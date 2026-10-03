@@ -1,29 +1,57 @@
 {
   "name": "daggler-cli",
   "version": "0.1.0",
-  "description": "The daggler CLI — run Daggler's static analysis and security policies over GitHub Actions workflows from the terminal.",
+  "description": "The daggler CLI \u2014 run Daggler's static analysis and security policies over GitHub Actions workflows from the terminal.",
+  "license": "MIT",
+  "author": "Allison Coleman <allisonemilycoleman@gmail.com>",
+  "homepage": "https://github.com/alliecatowo/daggler#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alliecatowo/daggler.git",
+    "directory": "apps/cli"
+  },
+  "bugs": "https://github.com/alliecatowo/daggler/issues",
+  "keywords": [
+    "github-actions",
+    "workflow",
+    "lint",
+    "security",
+    "ci",
+    "cli"
+  ],
   "type": "module",
   "bin": {
     "daggler": "./dist/cli.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsx src/cli.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepack": "cp ../../LICENSE LICENSE",
+    "postpack": "rm -f LICENSE"
   },
-  "dependencies": {
+  "devDependencies": {
     "@daggler/github": "workspace:*",
     "@daggler/inventory": "workspace:*",
     "@daggler/runner": "workspace:*",
     "@daggler/runner-protocol": "workspace:*",
     "@daggler/validators": "workspace:*",
     "@daggler/workflow-ir": "workspace:*",
-    "picocolors": "^1.1.1"
-  },
-  "devDependencies": {
+    "picocolors": "^1.1.1",
     "tsup": "^8.3.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }
