@@ -5,8 +5,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --port 3737",
-    "build": "next build",
+    "dev": "next dev --webpack --port 3737",
+    "build": "next build --webpack",
     "start": "next start --port 3737",
     "typecheck": "tsc --noEmit",
     "lint": "next lint"
@@ -24,15 +24,15 @@
     "@daggler/workflow-ir": "workspace:*",
     "@monaco-editor/react": "^4.6.0",
     "monaco-editor": "^0.57.0",
-    "next": "^15.5.24",
+    "next": "^16.3.8",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "zod": "^3.24.1"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
+    "@types/node": "^26.6.4",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "typescript": "^5.7.2"
+    "typescript": "^7.0.2"
   }
 }

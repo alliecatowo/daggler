@@ -80,7 +80,7 @@ const StepSchema = z.object({
   uses: z.string().optional(),
   run: z.string().optional(),
   name: z.string().optional(),
-  with: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
+  with: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
 });
 
 const StepAddSchema = z.object({

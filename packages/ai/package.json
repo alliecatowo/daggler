@@ -13,13 +13,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@daggler/workflow-ir": "workspace:*",
     "@daggler/validators": "workspace:*",
-    "zod": "^3.24.1"
+    "@daggler/workflow-ir": "workspace:*",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
-    "typescript": "^5.7.2",
-    "vite": "^7.0.0",
-    "vitest": "^4.1.11"
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3"
   }
 }
