@@ -221,7 +221,7 @@ The following test suites pass and are treated as contracts. Do not break them.
 
 ## Self-hosting
 
-The standalone web editor needs only Node. A `docker-compose.yml` and Postgres schema exist, but the stack is incomplete (`apps/web/Dockerfile` is missing and the worker is a placeholder). See the [self-hosting status](https://alliecatowo.github.io/daggler/guide/self-hosting). The compose file uses `postgres:18-alpine`; to move an existing Postgres 16 volume see [docs/upgrading-postgres.md](docs/upgrading-postgres.md).
+The standalone web editor needs only Node. A `docker-compose.yml` and Postgres schema exist, but the stack is incomplete (`apps/web/Dockerfile` is missing and the worker is a placeholder). See the [self-hosting status](https://alliecatowo.github.io/daggler/guide/self-hosting). The compose file uses `postgres:18-alpine`.
 
 ---
 
