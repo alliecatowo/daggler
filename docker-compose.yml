@@ -49,7 +49,7 @@ services:
   # actions-catalog refreshes, GitHub webhook fan-out) and runs them against
   # the same Postgres database so no separate queue broker is needed.
   worker:
-    image: node:20-alpine
+    image: node:26-alpine
     restart: unless-stopped
     working_dir: /app
     # Replace the placeholder command with your compiled worker entrypoint, e.g.:
