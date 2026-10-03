@@ -83,7 +83,7 @@ export function collectExpressions(ir: WorkflowIR): ExpressionUse[] {
     const jp = job.path;
     pushExprs(out, jp, "if", job.if, job.id);
     if (Array.isArray(job.runsOn)) {
-      job.runsOn.forEach((r) => pushExprs(out, jp, "runs-on", r, job.id));
+      for (const r of job.runsOn) pushExprs(out, jp, "runs-on", r, job.id);
     } else {
       pushExprs(out, jp, "runs-on", job.runsOn, job.id);
     }

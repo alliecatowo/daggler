@@ -21,7 +21,7 @@ import {
   dispatchGithubRunJob,
 } from "./jobs.js";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: handlers are registered with heterogeneous payload shapes
 export type AnyJobHandler = (payload: any) => Promise<any>;
 
 /**

@@ -50,7 +50,7 @@ function ConfidenceLadder(): ReactNode {
           (isRunning ? " is-running" : "");
 
         return (
-          <button
+          <button type="button"
             key={r.id}
             className={cls}
             onClick={() => r.id === "static" ? runSimulation(r.id) : runViaApi(r.id)}
@@ -83,7 +83,7 @@ function SecurityPosture(): ReactNode {
   const title = factors.length > 0 ? factors.join("\n") : undefined;
 
   return (
-    <div className="posture" title={title} aria-label={`Security grade ${grade}`}>
+    <div className="posture" title={title} role="img" aria-label={`Security grade ${grade}`}>
       {/* coloured grade badge */}
       <span className={`posture__grade grade-${grade}`}>{grade}</span>
       {/* score and label */}
@@ -153,7 +153,7 @@ export function TopBar(): ReactNode {
       <div className="ed-top__center">
         <div className="ed-viewseg">
           {(["graph", "split", "yaml"] as const).map((v) => (
-            <button
+            <button type="button"
               key={v}
               className={"ed-viewseg__btn" + (view === v ? " is-on" : "")}
               onClick={() => setView(v)}
@@ -174,7 +174,7 @@ export function TopBar(): ReactNode {
         <SecurityPosture />
 
         {/* Theme toggle */}
-        <button
+        <button type="button"
           className="ed-icbtn"
           title="Toggle theme"
           onClick={toggleTheme}
@@ -184,7 +184,7 @@ export function TopBar(): ReactNode {
         </button>
 
         {/* Diff button */}
-        <button
+        <button type="button"
           className="btn btn--sm"
           onClick={() => pushToast("Diff view — connect a base revision")}
         >
@@ -192,7 +192,7 @@ export function TopBar(): ReactNode {
         </button>
 
         {/* Open PR button */}
-        <button
+        <button type="button"
           className="btn btn--primary btn--sm"
           onClick={() => pushToast("Opening a PR requires connecting GitHub")}
         >
@@ -228,7 +228,7 @@ export function LeftRail(): ReactNode {
   return (
     <nav className="ed-rail">
       {items.map((it) => (
-        <button
+        <button type="button"
           key={it.id}
           className={"ed-rail__btn" + (tab === it.id ? " is-on" : "")}
           onClick={() => setTab(it.id)}
@@ -238,7 +238,7 @@ export function LeftRail(): ReactNode {
           {it.icon}
           {/* Error badge — only shown when there is at least one error */}
           {it.id === "diagnostics" && errorCount > 0 && (
-            <span className="ed-rail__badge" aria-label={`${errorCount} errors`}>
+            <span className="ed-rail__badge" role="img" aria-label={`${errorCount} errors`}>
               {errorCount}
             </span>
           )}
@@ -248,7 +248,7 @@ export function LeftRail(): ReactNode {
       {/* Push the gear to the bottom */}
       <div className="ed-rail__spacer" />
 
-      <button
+      <button type="button"
         className="ed-rail__btn"
         title="Settings"
         onClick={() => pushToast("Settings")}
@@ -293,7 +293,7 @@ export function DiagnosticsPanel(): ReactNode {
       {/* Header — always visible, toggles open/closed */}
       <div className="ed-bottom__head-row">
         {/* Tab buttons */}
-        <button
+        <button type="button"
           className={"ed-bottom__tab" + (activeTab === "diagnostics" ? " is-active" : "")}
           onClick={() => { setActiveTab("diagnostics"); setDiagOpen(true); }}
         >
@@ -307,7 +307,7 @@ export function DiagnosticsPanel(): ReactNode {
             )}
           </span>
         </button>
-        <button
+        <button type="button"
           className={"ed-bottom__tab" + (activeTab === "run" ? " is-active" : "")}
           onClick={() => { setActiveTab("run"); setDiagOpen(true); }}
         >
@@ -318,7 +318,7 @@ export function DiagnosticsPanel(): ReactNode {
             </span>
           )}
         </button>
-        <button
+        <button type="button"
           className={"ed-bottom__tab" + (activeTab === "ai" ? " is-active" : "")}
           onClick={() => { setActiveTab("ai"); setDiagOpen(true); }}
         >
@@ -331,7 +331,7 @@ export function DiagnosticsPanel(): ReactNode {
           )}
         </button>
         {/* Toggle collapse */}
-        <button
+        <button type="button"
           className="ed-bottom__toggle"
           onClick={() => setDiagOpen(!diagOpen)}
           aria-expanded={diagOpen}
@@ -345,12 +345,11 @@ export function DiagnosticsPanel(): ReactNode {
 
       {/* Panel body — rendered only when open */}
       {diagOpen && activeTab === "diagnostics" && (
-        <div className="ed-bottom__list scroll" role="list">
+        <div className="ed-bottom__list scroll">
           {diagnostics.map((d) => (
-            <button
+            <button type="button"
               key={d.id}
               className="ed-diagrow"
-              role="listitem"
               onClick={() => setSelected(pathToSelection(d.path))}
               title={d.message}
             >
@@ -407,7 +406,7 @@ export function DiagnosticsPanel(): ReactNode {
 
               {/* Apply edits CTA */}
               {Array.isArray(aiResult.edits) && aiResult.edits.length > 0 && (
-                <button
+                <button type="button"
                   className="btn btn--primary btn--sm ai-panel__apply"
                   onClick={applyAiEdits}
                 >
@@ -574,16 +573,21 @@ export function CommandPalette(): ReactNode {
     <div
       className="pal-overlay"
       onClick={() => setPalOpen(false)}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") setPalOpen(false);
+      }}
       role="dialog"
       aria-modal
       aria-label="Command palette"
     >
       {/* Stop propagation so clicks inside the palette don't close it */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: only stops click bubbling to the overlay */}
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: not interactive; the palette handles keys on its input */}
       <div className="pal" onClick={(e) => e.stopPropagation()}>
         {/* Search input */}
         <input
           className="pal__input mono"
-          // eslint-disable-next-line jsx-a11y/no-autofocus
+          // biome-ignore lint/a11y/noAutofocus: the palette is opened by an explicit shortcut and must take focus
           autoFocus
           placeholder="Type a command…"
           value={query}
@@ -603,7 +607,7 @@ export function CommandPalette(): ReactNode {
             <div className="pal__empty">No matching commands</div>
           ) : (
             filtered.map((c) => (
-              <button
+              <button type="button"
                 key={c.label}
                 className="pal__row"
                 role="option"
@@ -633,7 +637,7 @@ export function Fab(): ReactNode {
   const { setPalOpen } = useEditor();
 
   return (
-    <button
+    <button type="button"
       className="ed-fab"
       onClick={() => setPalOpen(true)}
       aria-label="Open command palette (⌘K)"

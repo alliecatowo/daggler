@@ -5,7 +5,7 @@
  * truthfully. No binary is assumed; every call is guarded.
  * ========================================================================== */
 
-import { execFileSync, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";

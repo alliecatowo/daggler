@@ -36,7 +36,7 @@ function Field({
 }): ReactNode {
   return (
     <div className="insp-field">
-      <label className="insp-label">{label}</label>
+      <span className="insp-label">{label}</span>
       {children}
       {hint && <div className="insp-hint">{hint}</div>}
     </div>

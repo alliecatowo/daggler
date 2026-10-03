@@ -11,7 +11,7 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { buildRepoAutomationMap } from "@daggler/inventory";
 import { SAMPLE_WORKFLOWS } from "@daggler/workflow-ir";
 import { GhCliAdapter } from "@daggler/github";

@@ -233,8 +233,8 @@ jobs:
       # Write untrusted event data to a file — never inline it into the prompt.
       - name: Write issue body to file
         run: |
-          printf '%s' "\$ISSUE_BODY" > /tmp/issue-body.txt
-          printf '%s' "\$ISSUE_TITLE" > /tmp/issue-title.txt
+          printf '%s' "$ISSUE_BODY" > /tmp/issue-body.txt
+          printf '%s' "$ISSUE_TITLE" > /tmp/issue-title.txt
         env:
           ISSUE_BODY: \${{ github.event.issue.body }}
           ISSUE_TITLE: \${{ github.event.issue.title }}

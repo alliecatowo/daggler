@@ -13,11 +13,12 @@
     "dev": "turbo run dev",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "lint": "turbo run lint",
+    "lint": "biome lint --diagnostic-level=warn .",
     "cli": "pnpm --filter daggler-cli exec daggler",
     "web": "pnpm --filter @daggler/web dev"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
     "@types/node": "^26.6.4",
     "prettier": "^3.9.9",
     "tsx": "^4.23.15",

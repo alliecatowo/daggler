@@ -304,7 +304,15 @@ export function GraphCanvas() {
                 top: nodePos.y,
                 width: nodePos.w,
               }}
+              role="button"
+              tabIndex={0}
               onClick={() => setSelected({ type: "job", id: node.id })}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setSelected({ type: "job", id: node.id });
+                }
+              }}
             >
               {/* Left accent bar — color driven by CSS class (.jobnode--sel,
                   .jobnode--running, .jobnode--passed, .jobnode--failed) */}

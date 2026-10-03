@@ -390,7 +390,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         (a, b) => depthOf(a.id, edges) - depthOf(b.id, edges),
       );
       const initial: Record<string, JobRunStatus> = {};
-      jobs.forEach((j) => (initial[j.id] = "idle"));
+      for (const j of jobs) initial[j.id] = "idle";
       setRunState({ mode, running: true, jobs: initial, simulated: true });
 
       let i = 0;

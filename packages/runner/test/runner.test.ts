@@ -30,7 +30,7 @@ jobs:
       - name: Unknown property
         env:
           FOO: \${{ steps.nonexistent.outputs.result }}
-        run: echo \$FOO
+        run: echo $FOO
 `;
 
 const CLEAN_WORKFLOW = `

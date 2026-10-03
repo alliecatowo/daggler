@@ -8,7 +8,7 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { AnalyzerAdapter } from "@daggler/runner-protocol";
 import { ActAdapter, GitHubDispatchAdapter } from "@daggler/runner";
 import type { RunnerRunResult } from "@daggler/runner-protocol";
