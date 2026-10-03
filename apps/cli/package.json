@@ -1,7 +1,7 @@
 {
   "name": "daggler-cli",
   "version": "0.1.0",
-  "description": "The daggler CLI \u2014 run Daggler's static analysis and security policies over GitHub Actions workflows from the terminal.",
+  "description": "The daggler CLI — run Daggler's static analysis and security policies over GitHub Actions workflows from the terminal.",
   "license": "MIT",
   "author": "Allison Coleman <me@allisons.dev>",
   "homepage": "https://github.com/alliecatowo/daggler#readme",
@@ -44,7 +44,7 @@
     "@daggler/workflow-ir": "workspace:*",
     "picocolors": "^1.1.1",
     "tsup": "^8.3.5",
-    "tsx": "^4.19.2",
+    "tsx": "^4.23.15",
     "typescript": "^5.7.2"
   },
   "engines": {
