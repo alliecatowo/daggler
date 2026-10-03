@@ -1,74 +1,65 @@
 ---
-layout: home
-hero:
-  name: "Daggler"
-  text: "A semantic workbench for GitHub Actions"
-  tagline: Parse workflows into a typed IR, see the job graph, validate it in layers, and catch security problems before they ship. Install the linter from npm, or run the browser editor from source.
-  image:
-    src: images/editor.png
-    alt: The Daggler editor
-  actions:
-    - theme: brand
-      text: Get started
-      link: /guide/getting-started
-    - theme: alt
-      text: Install the CLI
-      link: "#install"
-    - theme: alt
-      text: GitHub
-      link: https://github.com/alliecatowo/daggler
-features:
-  - title: Understand
-    details: Workflow YAML becomes a typed IR with a source map, so every finding points at an exact line and column.
-  - title: Validate
-    details: Five validation layers, from schema to expressions to graph semantics to action inputs.
-  - title: Secure
-    details: 13 policy rules, including prompt-injection checks for AI-agent workflows, and a graded security posture score.
-  - title: Runs client-side
-    details: The whole parse, graph and validate pipeline is pure TypeScript with no backend.
+layout: page
+title: Daggler
+pageClass: dg-page
+sidebar: false
 ---
 
-<div class="home-section" id="demo">
+<h1><span class="dg-prompt">$</span> npx daggler-cli lint</h1>
+<p class="dg-lede">Daggler is a semantic workbench for GitHub Actions. It parses workflows into a typed IR, graphs the jobs, validates them in layers and catches security problems before they ship.</p>
+<div class="dg-actions">
+  <a class="dg-primary" href="./guide/getting-started">get started</a>
+  <a href="#install">install the cli</a>
+  <a href="https://github.com/alliecatowo/daggler">github</a>
+</div>
 
-## See it work
+<div class="dg-term">
+<div class="dg-term-bar">npx daggler-cli lint --no-color</div>
+<pre><span class="c">.github/workflows/ci.yml</span>  <span class="r">Security D 58/100</span>
+2 errors  ·  1 warning  ·  0 info
+<span class="u">⚑ Unpinned third-party actions</span>
+<span class="u">⚑ Shell injection risk</span>
+<span class="r">●</span> <span class="p">POL007</span>  .github/workflows/ci.yml:8:9  Action ref uses a branch
+<span class="m">└─ 'actions/checkout@main' tracks a moving branch — each run may execute different code. Pin to a release tag or a full commit SHA.</span>
+<span class="r">●</span> <span class="p">POL008</span>  .github/workflows/ci.yml:9:9  Shell injection from untrusted input
+<span class="m">└─ Untrusted 'github.event.pull_request.title' is interpolated into a shell script — an attacker can inject commands. Pass it via an env var and quote it instead.</span>
+<span class="y">▲</span> <span class="p">POL001</span>  .github/workflows/ci.yml:workflow:permissions  No top-level permissions
+<span class="m">└─ No top-level 'permissions:' block — the workflow inherits broad default token scopes; add an explicit least-privilege block.</span>
+Summary  2 errors  ·  1 warning  ·  0 info  in 1 file  ·  worst security grade D</pre>
+</div>
 
-The screenshots below are from the real editor running from a checkout, with the real engine and bundled sample workflows. There is no hosted editor, so these are captures rather than a live embed.
+That is the actual output on a small workflow that checks out `actions/checkout@main` and interpolates a pull request title into a shell step under `pull_request_target`.
 
-<div class="home-grid">
-<figure><img src="./images/editor.png" alt="The Daggler editor: job graph, Monaco YAML with diagnostics, inspector, confidence ladder"><figcaption>The editor: live job graph, Monaco YAML with source-mapped diagnostics, a typed inspector and one-click quick-fixes.</figcaption></figure>
+## what it does
+
+<dl class="dg-facts">
+  <dt>parse and graph</dt>
+  <dd>Workflow YAML becomes a typed IR with a source map, then a job dependency graph. Diagnostics point at an exact line and column.</dd>
+  <dt>five layers</dt>
+  <dd>Parser, schema, expressions, graph semantics, and action inputs.</dd>
+  <dt>13 policy rules</dt>
+  <dd>POL001 to POL010 and AGENT001 to AGENT003: unpinned actions, shell injection, privileged untrusted events, and prompt injection in AI-agent workflows. Each workflow gets a score and a grade from A to F.</dd>
+  <dt>source-preserving edits</dt>
+  <dd>The patch engine applies edits to the YAML while keeping comments and formatting, and pin-to-SHA quick-fixes use API-verified commit SHAs.</dd>
+  <dt>confidence ladder</dt>
+  <dd>Run a static analysis pass, then optionally a local <code>act</code> run or a GitHub run. Results are labeled simulated until a real runner proves them.</dd>
+  <dt>client-side</dt>
+  <dd>The parse, graph and validate pipeline is pure TypeScript and runs in the browser with no backend.</dd>
+</dl>
+
+## the editor
+
+Captures from the real editor running from a checkout, with the real engine and bundled sample workflows. There is no hosted editor, so these are screenshots rather than a live embed.
+
+<div class="dg-shots">
+<figure><img src="./images/editor.png" alt="The Daggler editor: job graph, Monaco YAML with diagnostics, inspector, confidence ladder"><figcaption>Live job graph, Monaco YAML with source-mapped diagnostics, a typed inspector and one-click quick-fixes.</figcaption></figure>
 <figure><img src="./images/security.png" alt="Security view of an AI-agent workflow graded F with AGENT001 findings"><figcaption>Security view: an AI-agent workflow graded F, with AGENT001 and POL003 findings.</figcaption></figure>
 <figure><img src="./images/live-run.png" alt="The Local rung of the confidence ladder streaming an act plan into the Run panel"><figcaption>The Local rung of the confidence ladder runs act against Docker and streams the plan into the Run panel.</figcaption></figure>
 </div>
 
-</div>
+<div id="install"></div>
 
-<div class="home-section" id="cli">
-
-## Or lint from the terminal
-
-This is the actual output of `npx daggler-cli lint --no-color` on a small workflow that checks out `actions/checkout@main` and interpolates a pull request title into a shell step under `pull_request_target`.
-
-```text
-  .github/workflows/ci.yml  Security D 58/100
-  2 errors  ·  1 warning  ·  0 info
-  ⚑ Unpinned third-party actions
-  ⚑ Shell injection risk
-
-  ● POL007  .github/workflows/ci.yml:8:9  Action ref uses a branch
-  └─ 'actions/checkout@main' tracks a moving branch — each run may execute different code. Pin to a release tag or a full commit SHA.
-  ● POL008  .github/workflows/ci.yml:9:9  Shell injection from untrusted input
-  └─ Untrusted 'github.event.pull_request.title' is interpolated into a shell script — an attacker can inject commands. Pass it via an env var and quote it instead.
-  ▲ POL001  .github/workflows/ci.yml:workflow:permissions  No top-level permissions
-  └─ No top-level 'permissions:' block — the workflow inherits broad default token scopes; add an explicit least-privilege block.
-
-  Summary  2 errors  ·  1 warning  ·  0 info  in 1 file  ·  worst security grade D
-```
-
-</div>
-
-<div class="home-section" id="install">
-
-## Install
+## install
 
 The CLI is published on npm as [`daggler-cli`](https://www.npmjs.com/package/daggler-cli) (Node 20 or newer). The binary is `daggler`.
 
@@ -90,19 +81,4 @@ pnpm --filter @daggler/web dev
 
 It opens at `http://localhost:3737` with bundled sample workflows. No database or GitHub connection is needed.
 
-</div>
-
-<div class="home-section" id="features">
-
-## What it does
-
-- **Parse and graph.** Workflow YAML becomes a typed IR with a source map, then a job dependency graph. Diagnostics point at an exact line and column.
-- **Five validation layers.** Parser, schema, expressions, graph semantics, and action inputs.
-- **13 security and policy rules.** POL001 to POL010 and AGENT001 to AGENT003: unpinned actions, shell injection, privileged untrusted events, and prompt injection in AI-agent workflows. Each workflow gets a score and a grade from A to F.
-- **Source-preserving edits.** The patch engine applies edits to the YAML while keeping comments and formatting, and pin-to-SHA quick-fixes use API-verified commit SHAs.
-- **Confidence ladder.** Run a static analysis pass, then optionally a local `act` run or a GitHub run. Results are labeled simulated until a real runner proves them.
-- **Client-side engine.** The parse, graph and validate pipeline is pure TypeScript and runs in the browser with no backend.
-
 Details are in the [guide](/guide/getting-started) and the [reference](/reference/cli).
-
-</div>
