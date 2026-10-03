@@ -26,7 +26,7 @@ jobs:
           fetch-depth: 0 # VitePress lastUpdated needs real history
 
       # The pnpm version comes from docs/package.json "packageManager".
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@v6.1.0
         with:
           package_json_file: docs/package.json
 
