@@ -6,7 +6,7 @@ The repository contains a `docker-compose.yml` and a Postgres schema, but the se
 
 What is there today:
 
-- `docker-compose.yml` defines a `postgres:16-alpine` service, a `web` service and a `worker` service, with an `.env.example` listing `DATABASE_URL`, `DAGGLER_SECRET_KEY` and the GitHub App and OAuth settings.
+- `docker-compose.yml` defines a `postgres:18-alpine` service (on a `postgres18_data` volume; see [upgrading Postgres](../upgrading-postgres.md) if you used the earlier 16 volume), a `web` service and a `worker` service, with an `.env.example` listing `DATABASE_URL`, `DAGGLER_SECRET_KEY` and the GitHub App and OAuth settings.
 - `@daggler/db` holds a Drizzle ORM Postgres schema for users, workspaces, repositories, workflow revisions, validation runs, runners, executions, policy packs and templates.
 
 What is missing:

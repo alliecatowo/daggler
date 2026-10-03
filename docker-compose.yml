@@ -9,14 +9,19 @@
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-daggler}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-daggler}
       POSTGRES_DB: ${POSTGRES_DB:-daggler}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # Postgres 18+ images keep data in a versioned subdirectory
+      # (/var/lib/postgresql/18/docker), so the mount moves up one level.
+      # The volume is named postgres18_data on purpose: an existing Postgres 16
+      # volume (postgres_data) is left untouched as your backup and cannot be
+      # attached to the 18 image. Upgrading an existing install: docs/upgrading-postgres.md
+      - postgres18_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-daggler} -d ${POSTGRES_DB:-daggler}"]
       interval: 10s
@@ -64,4 +69,4 @@ services:
         condition: service_healthy
 
 volumes:
-  postgres_data:
+  postgres18_data:
