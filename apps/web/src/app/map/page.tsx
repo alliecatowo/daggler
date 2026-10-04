@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { LogoMark } from "@/components/icons";
 import { apiPost } from "@/lib/api-client";
+import { HOSTED } from "@/lib/hosted";
 import type {
   RepoAutomationMap,
   WorkflowSummary,
@@ -501,6 +502,16 @@ export default function MapPage() {
     const body = repo ? { repo } : { demo: true };
     if (repo) setLastRepo(repo);
     else setLastRepo("demo corpus");
+
+    if (HOSTED) {
+      setResult({
+        error: "hosted",
+        message:
+          "Repository mapping reads GitHub with your credentials, so it is off in the hosted demo. Run it locally: npx daggler-cli map owner/repo",
+      });
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await apiPost("/api/map", body);

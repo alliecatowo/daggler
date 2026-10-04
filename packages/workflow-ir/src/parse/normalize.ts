@@ -221,14 +221,19 @@ export function parseMatrix(raw: unknown): MatrixIR | undefined {
   const dimensions: Record<string, Array<string | number | boolean>> = {};
   let size = 1;
   let hasDim = false;
+  let fromExpression = false;
   for (const [key, val] of Object.entries(r)) {
     if (key === "include" || key === "exclude") continue;
     if (Array.isArray(val)) {
       dimensions[key] = val as Array<string | number | boolean>;
       size *= Math.max(val.length, 1);
       hasDim = true;
+    } else if (typeof val === "string" && val.includes("${{")) {
+      // e.g. `os: ${{ fromJSON(needs.setup.outputs.os) }}` — resolved at runtime.
+      fromExpression = true;
     }
   }
+  const includeCount = Array.isArray(r.include) ? r.include.length : 0;
   return {
     dimensions,
     include: Array.isArray(r.include)
@@ -237,7 +242,9 @@ export function parseMatrix(raw: unknown): MatrixIR | undefined {
     exclude: Array.isArray(r.exclude)
       ? (r.exclude as Array<Record<string, string | number | boolean>>)
       : undefined,
-    size: hasDim ? size : 0,
+    ...(fromExpression ? { fromExpression: true } : {}),
+    // An include-only matrix is still a matrix: one job per include entry.
+    size: hasDim ? size : includeCount,
   };
 }
 

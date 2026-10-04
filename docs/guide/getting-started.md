@@ -29,7 +29,7 @@ Exit code is `1` when any error-severity finding is reported. See the [CLI refer
 
 ## Run the web editor
 
-The editor is not published as a hosted service or a package. Run it from source (Node 20+, pnpm 10+):
+There is a hosted demo at <a href="../app/editor/" target="_self">/app/editor</a>: validation, the job graph, event simulation and policy checks run in your browser, and running workflows, GitHub dispatch and AI are off. For those, run the editor from source (Node 20+, pnpm 10+):
 
 ```bash
 git clone https://github.com/alliecatowo/daggler

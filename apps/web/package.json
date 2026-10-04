@@ -9,7 +9,8 @@
     "build": "next build --webpack",
     "start": "next start --hostname 127.0.0.1 --port 3737",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:hosted": "node scripts/build-hosted.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",

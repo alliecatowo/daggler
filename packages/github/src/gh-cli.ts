@@ -386,11 +386,19 @@ export class GhCliAdapter implements GitHubRepositoryPort {
         title,
         "--body",
         body,
+      ]);
+
+      // `gh pr create` has no --json; it prints the new PR URL on stdout.
+      const url = stdout.trim().split(/\s+/).filter((t) => /^https?:\/\//.test(t)).pop();
+      if (!url) throw new Error(`gh pr create did not print a PR URL: ${stdout.trim()}`);
+      const { stdout: viewOut } = await run([
+        "pr",
+        "view",
+        url,
         "--json",
         "number,url,headRefName,baseRefName",
       ]);
-
-      const pr = JSON.parse(stdout) as {
+      const pr = JSON.parse(viewOut) as {
         number: number;
         url: string;
         headRefName: string;

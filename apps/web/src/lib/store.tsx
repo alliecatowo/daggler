@@ -29,6 +29,7 @@ import {
 } from "react";
 import { analyze, type Analysis } from "./engine";
 import { apiPost } from "./api-client";
+import { HOSTED } from "./hosted";
 
 /** Resolve a tag/ref to a pinned SHA from the known catalog. */
 function resolveSha(
@@ -211,6 +212,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   const [runMode, setRunMode] = useState<RunMode>("static");
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [lastRun, setLastRun] = useState<LastRun | null>(null);
+  const githubTarget = useRef<{ repo: string; ref: string } | null>(null);
   const [simulateResult, setSimulateResult] = useState<SimulateResult | null>(null);
   const [aiResult, setAiResult] = useState<AiResult | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
@@ -443,11 +445,55 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const body = {
+      if (HOSTED) {
+        // The hosted demo has no server: running workflows (act/Docker) and
+        // dispatching to GitHub need the local app or the CLI.
+        const label = mode === "github" ? "GitHub dispatch" : "Local runs";
+        setLastRun({
+          mode,
+          status: "unavailable",
+          summary: `${label} are turned off in the hosted demo. Install the CLI to run workflows locally: npx daggler-cli lint`,
+          logs: [],
+        });
+        pushToast(`${label} need the CLI — npx daggler-cli`);
+        return;
+      }
+
+      const body: {
+        yaml: string;
+        mode: RunMode;
+        path: string;
+        repo?: string;
+        ref?: string;
+      } = {
         yaml: source,
         mode,
         path: active.path,
       };
+
+      if (mode === "github") {
+        // The GitHub rung dispatches the workflow on a real repo: it needs
+        // owner/repo and a ref. Ask once and remember for this session.
+        let target = githubTarget.current;
+        if (!target) {
+          const answer =
+            typeof window !== "undefined"
+              ? window.prompt(
+                  "Dispatch on which repository? (owner/repo or owner/repo@ref)",
+                  "",
+                )
+              : null;
+          const m = answer?.trim().match(/^([^\s@]+\/[^\s@]+)(?:@(\S+))?$/);
+          if (!m) {
+            pushToast("GitHub rung needs a repository, e.g. owner/repo@main");
+            return;
+          }
+          target = { repo: m[1]!, ref: m[2] ?? "main" };
+          githubTarget.current = target;
+        }
+        body.repo = target.repo;
+        body.ref = target.ref;
+      }
 
       apiPost("/api/run", body)
         .then(async (res) => {
@@ -528,6 +574,15 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   const askAi = useCallback(
     (intent: AiIntent) => {
       if (aiLoading) return;
+      if (HOSTED) {
+        setAiResult({
+          available: false,
+          message:
+            "AI assist is turned off in the hosted demo (it would spend an API key). Run Daggler locally with your own key: npx daggler-cli",
+        });
+        pushToast("AI assist is off in the hosted demo");
+        return;
+      }
       setAiLoading(true);
       setAiResult(null);
       pushToast(`AI: ${intent}ing workflow…`);

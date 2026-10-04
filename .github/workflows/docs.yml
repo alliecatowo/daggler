@@ -1,11 +1,12 @@
 name: docs
 
-# Builds the VitePress site in docs/ and deploys it to GitHub Pages on every push to main.
+# Builds the VitePress site in docs/ and the static hosted web editor (apps/web, served at /app/)
+# and deploys both to GitHub Pages on every push to main.
 # One-time: repo Settings > Pages > Source: "GitHub Actions".
 on:
   push:
     branches: [main]
-    paths: ["docs/**", ".github/workflows/docs.yml"]
+    paths: ["docs/**", "apps/web/**", "packages/**", ".github/workflows/docs.yml"]
   workflow_dispatch:
 
 permissions:
@@ -41,6 +42,14 @@ jobs:
 
       - run: pnpm build
         working-directory: docs
+
+      # Hosted editor: static export, no server and no API routes (see apps/web/scripts/build-hosted.mjs).
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @daggler/web build:hosted
+      - run: |
+          mkdir -p docs/.vitepress/dist/app
+          cp -r apps/web/out/. docs/.vitepress/dist/app/
+          touch docs/.vitepress/dist/.nojekyll
 
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5

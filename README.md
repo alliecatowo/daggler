@@ -2,9 +2,13 @@
 
 **A semantic workbench for GitHub Actions.**
 
-[Docs](https://alliecatowo.github.io/daggler/) · [npm](https://www.npmjs.com/package/daggler-cli)
+**[Try it in the browser](https://alliecatowo.github.io/daggler/app/editor/)** · [Docs](https://alliecatowo.github.io/daggler/) · [npm](https://www.npmjs.com/package/daggler-cli)
 
 Daggler parses GitHub Actions YAML into a typed intermediate representation, projects it into a dependency graph, runs a layered validator against it, and surfaces the results in an interactive browser editor and a terminal linter. The entire semantic pipeline — parse, IR, graph, validate — is pure, isomorphic TypeScript that runs client-side with no backend required.
+
+<p align="center">
+  <a href="https://alliecatowo.github.io/daggler/app/editor/"><b>Try it in the browser</b></a> — no install; validation, the job graph, simulation and policy checks all run client-side.
+</p>
 
 <p align="center">
   <img src="docs/images/editor.png" alt="The Daggler editor: a live job graph, Monaco YAML with source-mapped diagnostics, a typed inspector, the confidence ladder, and one-click security quick-fixes." width="100%">

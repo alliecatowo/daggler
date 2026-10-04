@@ -1,6 +1,15 @@
+// Hosted demo: a fully static export (no server, no API routes) served under a
+// sub-path of GitHub Pages. See scripts/build-hosted.mjs.
+const hosted = process.env.NEXT_PUBLIC_DAGGLER_HOSTED === "1";
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  ...(hosted
+    ? { output: "export", trailingSlash: true, images: { unoptimized: true } }
+    : {}),
+  ...(basePath ? { basePath } : {}),
   transpilePackages: [
     "@daggler/ai",
     "@daggler/github",

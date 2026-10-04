@@ -7,8 +7,11 @@ export default defineConfig({
   base: process.env.DOCS_BASE ?? "/daggler/",
   cleanUrls: true,
   lastUpdated: true,
+  // /app/ is the static web editor, copied into the site by the docs workflow.
+  ignoreDeadLinks: [/\/app\//],
   themeConfig: {
     nav: [
+      { text: "Try it", link: "/app/editor/", target: "_self" },
       { text: "Guide", link: "/guide/getting-started" },
       { text: "CLI", link: "/reference/cli" },
       { text: "npm", link: "https://www.npmjs.com/package/daggler-cli" },

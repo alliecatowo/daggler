@@ -8,7 +8,8 @@ sidebar: false
 <h1><span class="dg-prompt">$</span> npx daggler-cli lint</h1>
 <p class="dg-lede">Daggler is a semantic workbench for GitHub Actions. It parses workflows into a typed IR, graphs the jobs, validates them in layers and catches security problems before they ship.</p>
 <div class="dg-actions">
-  <a class="dg-primary" href="./guide/getting-started">get started</a>
+  <a class="dg-primary" href="./app/editor/" target="_self">try it in the browser</a>
+  <a href="./guide/getting-started">get started</a>
   <a href="#install">install the cli</a>
   <a href="https://github.com/alliecatowo/daggler">github</a>
 </div>
@@ -49,7 +50,7 @@ That is the actual output on a small workflow that checks out `actions/checkout@
 
 ## the editor
 
-Captures from the real editor running from a checkout, with the real engine and bundled sample workflows. There is no hosted editor, so these are screenshots rather than a live embed.
+Captures from the real editor running from a checkout, with the real engine and bundled sample workflows. The <a href="./app/editor/" target="_self">hosted editor</a> runs the same engine in your browser; these are screenshots of the local build, which also has the Local and GitHub run rungs.
 
 <div class="dg-shots">
 <figure><img src="./images/editor.png" alt="The Daggler editor: job graph, Monaco YAML with diagnostics, inspector, confidence ladder"><figcaption>Live job graph, Monaco YAML with source-mapped diagnostics, a typed inspector and one-click quick-fixes.</figcaption></figure>
@@ -70,7 +71,7 @@ daggler lint
 
 Or without installing: `npx daggler-cli lint`.
 
-The browser editor is not published as a package or a hosted service. Build and run it from source (Node 20+, pnpm 10+):
+The browser editor is hosted at <a href="./app/editor/" target="_self">alliecatowo.github.io/daggler/app/editor</a> (validation, graph, simulation and policy checks only; running workflows needs the CLI or a local build). To run the full editor yourself, build it from source (Node 20+, pnpm 10+):
 
 ```bash
 git clone https://github.com/alliecatowo/daggler

@@ -27,3 +27,4 @@ daggler.zip
 # VitePress
 docs/.vitepress/cache/
 docs/.vitepress/dist/
+apps/web/.api-stash/

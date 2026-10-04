@@ -219,27 +219,45 @@ permissions:
     evaluate(ctx): RawFinding[] {
       const { ir } = ctx;
       if (!hasTrigger(ir, PRIVILEGED_UNTRUSTED_EVENTS)) return [];
-      const perms = ir.permissions;
-      if (!grantsWrite(perms)) return [];
 
       // Identify which dangerous events are present.
       const dangerEvents = ir.on
         .filter((t) => PRIVILEGED_UNTRUSTED_EVENTS.includes(t.event))
         .map((t) => t.event);
 
-      const writeScopeName = firstWriteScope(perms) ?? "write";
-      return [
-        {
+      const docsUrl =
+        "https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections";
+      const findings: RawFinding[] = [];
+
+      // Workflow-level permissions.
+      if (grantsWrite(ir.permissions)) {
+        const writeScopeName = firstWriteScope(ir.permissions) ?? "write";
+        findings.push({
           code: "POL003",
           severity: "error",
           source: "security",
           title: "Privileged token on an untrusted event",
           message: `Workflow runs on ${dangerEvents.join(", ")} (an untrusted event) and grants ${writeScopeName} permission — attacker-controlled code can exfiltrate secrets or modify the repository.`,
           path: workflowField("permissions"),
-          docsUrl:
-            "https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections",
-        },
-      ];
+          docsUrl,
+        });
+      }
+
+      // Job-level permissions override the workflow block, so check each job.
+      for (const job of ir.jobs) {
+        if (!grantsWrite(job.permissions)) continue;
+        const writeScopeName = firstWriteScope(job.permissions) ?? "write";
+        findings.push({
+          code: "POL003",
+          severity: "error",
+          source: "security",
+          title: "Privileged token on an untrusted event",
+          message: `Job '${job.id}' runs on ${dangerEvents.join(", ")} (an untrusted event) and grants ${writeScopeName} permission — attacker-controlled code can exfiltrate secrets or modify the repository.`,
+          path: `${jobPath(job.id)}:permissions`,
+          docsUrl,
+        });
+      }
+      return findings;
     },
   },
 
