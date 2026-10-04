@@ -44,7 +44,6 @@ export const VERIFIED_OWNERS = new Set([
   "google-github-actions",
   "azure",
   "hashicorp",
-  "actions-rs",
 ]);
 
 function meta(m: Omit<ActionMeta, "fullName" | "official" | "verified">): ActionMeta {

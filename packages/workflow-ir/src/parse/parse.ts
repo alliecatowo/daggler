@@ -248,10 +248,34 @@ export interface ParseOptions {
   path?: string;
 }
 
+/** Hard cap on workflow source size (UTF-16 code units). Real workflows are a few KB. */
+export const MAX_SOURCE_LENGTH = 512 * 1024;
+/** Bounded YAML alias expansion count (guards against "billion laughs" documents). */
+export const MAX_ALIAS_COUNT = 100;
+
 export function parseWorkflow(
   source: string,
   options: ParseOptions = {},
 ): ParseResult {
+  if (source.length > MAX_SOURCE_LENGTH) {
+    const empty = parseWorkflow("", options);
+    return {
+      ...empty,
+      diagnostics: [
+        {
+          code: "parser/SOURCE_TOO_LARGE",
+          message: `Workflow source is ${source.length} characters; the limit is ${MAX_SOURCE_LENGTH}.`,
+          severity: "error",
+          span: {
+            path: "workflow",
+            start: { offset: 0, line: 1, col: 1 },
+            end: { offset: 0, line: 1, col: 1 },
+          },
+        },
+      ],
+      ok: false,
+    };
+  }
   const path = options.path ?? ".github/workflows/workflow.yml";
   const posOf = makePositioner(source);
   const doc = parseDocument(source, { prettyErrors: true, version: "1.2" });
@@ -281,10 +305,25 @@ export function parseWorkflow(
     });
   }
 
+  let toJsFailed = false;
   const js = (() => {
     try {
-      return (doc.toJS({ maxAliasCount: -1 }) ?? {}) as Record<string, unknown>;
-    } catch {
+      return (doc.toJS({ maxAliasCount: MAX_ALIAS_COUNT }) ?? {}) as Record<string, unknown>;
+    } catch (err) {
+      toJsFailed = true;
+      diagnostics.push({
+        code: "parser/ALIAS_LIMIT",
+        message:
+          err instanceof Error
+            ? `Could not expand YAML document: ${err.message}`
+            : "Could not expand YAML document",
+        severity: "error",
+        span: {
+          path: "workflow",
+          start: posOf(0),
+          end: posOf(0),
+        },
+      });
       return {} as Record<string, unknown>;
     }
   })();
@@ -352,6 +391,6 @@ export function parseWorkflow(
     ir,
     sourceMap: { spans, source },
     diagnostics,
-    ok: doc.errors.length === 0,
+    ok: doc.errors.length === 0 && !toJsFailed,
   };
 }

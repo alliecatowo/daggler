@@ -12,6 +12,18 @@ import { type NextRequest, NextResponse } from "next/server";
 import { AnalyzerAdapter } from "@daggler/runner-protocol";
 import { ActAdapter, GitHubDispatchAdapter } from "@daggler/runner";
 import type { RunnerRunResult } from "@daggler/runner-protocol";
+import {
+  guardJson,
+  isValidRef,
+  isValidRepoSlug,
+  isValidWorkflowPath,
+} from "../../../lib/guard";
+
+// Powerful rungs are opt-in: they execute code / use the host's gh credentials.
+const MAX_YAML_CHARS = 512 * 1024;
+const localFullEnabled = () => process.env["DAGGLER_ALLOW_LOCAL_RUN"] === "1";
+const githubDispatchEnabled = () =>
+  process.env["DAGGLER_ALLOW_GITHUB_DISPATCH"] === "1";
 
 // ---------------------------------------------------------------------------
 // Request body type
@@ -49,21 +61,21 @@ function toResponse(result: RunnerRunResult): NextResponse {
 // Handler
 // ---------------------------------------------------------------------------
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
-  let body: RunRequestBody;
-  try {
-    body = (await req.json()) as RunRequestBody;
-  } catch {
-    return NextResponse.json(
-      { error: "Invalid JSON body" },
-      { status: 400 },
-    );
-  }
+export async function POST(req: NextRequest): Promise<Response> {
+  const guarded = await guardJson(req);
+  if (!guarded.ok) return guarded.response;
+  const body = (guarded.body ?? {}) as RunRequestBody;
 
   const { yaml, mode, full, path, repo, ref } = body;
 
   if (!yaml || typeof yaml !== "string") {
     return NextResponse.json({ error: "yaml is required" }, { status: 400 });
+  }
+  if (yaml.length > MAX_YAML_CHARS) {
+    return NextResponse.json({ error: "yaml too large" }, { status: 413 });
+  }
+  if (path !== undefined && !isValidWorkflowPath(path)) {
+    return NextResponse.json({ error: "invalid path" }, { status: 400 });
   }
 
   if (mode === "static") {
@@ -73,6 +85,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   if (mode === "local") {
+    if (full === true && !localFullEnabled()) {
+      return unavailable(
+        "Full local runs execute workflow steps via act/Docker and are disabled. " +
+          "Start the server with DAGGLER_ALLOW_LOCAL_RUN=1 to enable them.",
+      );
+    }
     try {
       const adapter = new ActAdapter();
       let result: RunnerRunResult;
@@ -95,9 +113,21 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   if (mode === "github") {
+    if (!githubDispatchEnabled()) {
+      return unavailable(
+        "GitHub dispatch uses the host's gh credentials and is disabled. " +
+          "Start the server with DAGGLER_ALLOW_GITHUB_DISPATCH=1 to enable it.",
+      );
+    }
     if (!repo || !ref) {
       return NextResponse.json(
         { error: "repo and ref are required for github mode" },
+        { status: 400 },
+      );
+    }
+    if (!isValidRepoSlug(repo) || !isValidRef(ref)) {
+      return NextResponse.json(
+        { error: "invalid repo or ref" },
         { status: 400 },
       );
     }

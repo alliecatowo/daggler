@@ -23,6 +23,11 @@ import {
   AI_MODEL,
 } from "@daggler/ai";
 import Anthropic from "@anthropic-ai/sdk";
+import { guardJson, makeRateLimiter } from "../../../lib/guard";
+
+const MAX_YAML_CHARS = 200 * 1024;
+// Protect the operator's API budget: 20 AI calls per minute per server.
+const allowAiCall = makeRateLimiter(20, 60_000);
 
 // ---------------------------------------------------------------------------
 // Request body type
@@ -38,7 +43,10 @@ interface AiRequestBody {
 // Handler
 // ---------------------------------------------------------------------------
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
+export async function POST(req: NextRequest): Promise<Response> {
+  const guarded = await guardJson(req, { maxBodyBytes: 256 * 1024 });
+  if (!guarded.ok) return guarded.response;
+
   // Honest early exit when the API key is absent.
   if (!process.env["ANTHROPIC_API_KEY"]) {
     return NextResponse.json({
@@ -49,17 +57,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     });
   }
 
-  let body: AiRequestBody;
-  try {
-    body = (await req.json()) as AiRequestBody;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
+  const body = (guarded.body ?? {}) as AiRequestBody;
 
   const { yaml, intent, path } = body;
 
   if (!yaml || typeof yaml !== "string") {
     return NextResponse.json({ error: "yaml is required" }, { status: 400 });
+  }
+
+  if (yaml.length > MAX_YAML_CHARS) {
+    return NextResponse.json({ error: "yaml too large" }, { status: 413 });
+  }
+
+  if (!allowAiCall()) {
+    return NextResponse.json(
+      { error: "rate limit exceeded; try again shortly" },
+      { status: 429 },
+    );
   }
 
   if (intent !== "explain" && intent !== "harden" && intent !== "generate") {
@@ -158,10 +172,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({ available: true, ...parsed.data });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[api/ai] request failed:", err);
     return NextResponse.json({
       available: false,
-      message: `AI request failed: ${msg}`,
+      message: "AI request failed. See the server log for details.",
     });
   }
 }
