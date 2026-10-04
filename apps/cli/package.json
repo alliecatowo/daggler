@@ -1,6 +1,6 @@
 {
   "name": "daggler-cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The daggler CLI — run Daggler's static analysis and security policies over GitHub Actions workflows from the terminal.",
   "license": "MIT",
   "author": "Allison Coleman <me@allisons.dev>",
