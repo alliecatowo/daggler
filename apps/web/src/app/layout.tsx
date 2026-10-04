@@ -1,5 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { getLaunchToken } from "../lib/guard";
+
+// The token is generated per server launch, so never prerender this layout.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Daggler — the semantic IDE for GitHub Actions",
@@ -21,6 +25,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" data-theme="dark" suppressHydrationWarning>
+      <head>
+        <meta name="daggler-token" content={getLaunchToken()} />
+      </head>
       <body suppressHydrationWarning>{children}</body>
     </html>
   );

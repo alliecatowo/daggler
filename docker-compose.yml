@@ -32,7 +32,7 @@ services:
       dockerfile: apps/web/Dockerfile
     restart: unless-stopped
     ports:
-      - "${WEB_PORT:-3737}:3737"
+      - "127.0.0.1:${WEB_PORT:-3737}:3737"
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgres://daggler:daggler@postgres:5432/daggler}
       DAGGLER_SECRET_KEY: ${DAGGLER_SECRET_KEY:?DAGGLER_SECRET_KEY must be set}

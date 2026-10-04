@@ -11,6 +11,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { LogoMark } from "@/components/icons";
+import { apiPost } from "@/lib/api-client";
 import type {
   RepoAutomationMap,
   WorkflowSummary,
@@ -502,11 +503,7 @@ export default function MapPage() {
     else setLastRepo("demo corpus");
 
     try {
-      const res = await fetch("/api/map", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const res = await apiPost("/api/map", body);
       const data = (await res.json()) as ApiResult;
       setResult(data);
     } catch (err) {

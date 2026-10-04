@@ -15,10 +15,16 @@ import { type NextRequest, NextResponse } from "next/server";
 import { buildRepoAutomationMap } from "@daggler/inventory";
 import { SAMPLE_WORKFLOWS } from "@daggler/workflow-ir";
 import { GhCliAdapter } from "@daggler/github";
+import { guardJson, isValidRepoSlug } from "../../../lib/guard";
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
+const MAX_WORKFLOW_FILES = 50;
+const FETCH_CONCURRENCY = 5;
+
+export async function POST(req: NextRequest): Promise<Response> {
+  const guarded = await guardJson(req, { maxBodyBytes: 16 * 1024 });
+  if (!guarded.ok) return guarded.response;
   try {
-    const body = (await req.json().catch(() => ({}))) as {
+    const body = (guarded.body ?? {}) as {
       repo?: string;
       demo?: boolean;
     };
@@ -36,13 +42,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Real repo path
     const repoStr = (body.repo ?? "").trim();
-    const slash = repoStr.indexOf("/");
-    if (slash === -1) {
+    if (!isValidRepoSlug(repoStr)) {
       return NextResponse.json(
         { error: "invalid_repo", message: "repo must be in owner/repo format" },
         { status: 200 },
       );
     }
+    const slash = repoStr.indexOf("/");
 
     const owner = repoStr.slice(0, slash);
     const repo = repoStr.slice(slash + 1);
@@ -64,24 +70,34 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const adapter = new GhCliAdapter();
     const repoRef = { owner, repo };
 
-    const paths = await adapter.listWorkflowFiles(repoRef);
+    const paths = (await adapter.listWorkflowFiles(repoRef)).slice(
+      0,
+      MAX_WORKFLOW_FILES,
+    );
     if (paths.length === 0) {
       const map = buildRepoAutomationMap([]);
       return NextResponse.json(map);
     }
 
-    // Fetch each file in parallel (bounded by Node's native concurrency)
-    const fileResults = await Promise.all(
-      paths.map(async (path) => {
-        const blob = await adapter.getFile(repoRef, path);
-        return { path: blob.path, yaml: blob.content };
-      }),
-    );
+    // Fetch files with bounded concurrency.
+    const fileResults: { path: string; yaml: string }[] = [];
+    for (let i = 0; i < paths.length; i += FETCH_CONCURRENCY) {
+      const batch = await Promise.all(
+        paths.slice(i, i + FETCH_CONCURRENCY).map(async (path) => {
+          const blob = await adapter.getFile(repoRef, path);
+          return { path: blob.path, yaml: blob.content };
+        }),
+      );
+      fileResults.push(...batch);
+    }
 
     const map = buildRepoAutomationMap(fileResults);
     return NextResponse.json(map);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: "unexpected", message }, { status: 200 });
+    console.error("[api/map]", err);
+    return NextResponse.json(
+      { error: "unexpected", message: "Could not build the repo map." },
+      { status: 200 },
+    );
   }
 }

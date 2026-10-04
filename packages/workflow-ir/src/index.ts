@@ -8,7 +8,12 @@ export * from "./ir/types.js";
 export * from "./ir/paths.js";
 export { SourceMap, makePositioner } from "./ir/source-map.js";
 
-export { parseWorkflow, type ParseOptions } from "./parse/parse.js";
+export {
+  parseWorkflow,
+  MAX_SOURCE_LENGTH,
+  MAX_ALIAS_COUNT,
+  type ParseOptions,
+} from "./parse/parse.js";
 export {
   parseActionRef,
   parseReusableCall,

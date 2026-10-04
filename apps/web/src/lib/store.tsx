@@ -28,6 +28,7 @@ import {
   type ReactNode,
 } from "react";
 import { analyze, type Analysis } from "./engine";
+import { apiPost } from "./api-client";
 
 /** Resolve a tag/ref to a pinned SHA from the known catalog. */
 function resolveSha(
@@ -448,12 +449,12 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         path: active.path,
       };
 
-      fetch("/api/run", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
+      apiPost("/api/run", body)
         .then(async (res) => {
+          if (!res.ok) {
+            const err = (await res.json().catch(() => ({}))) as { error?: string };
+            throw new Error(err.error ?? `request failed (${res.status})`);
+          }
           const data = (await res.json()) as {
             status: string;
             summary: string;
@@ -531,11 +532,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       setAiResult(null);
       pushToast(`AI: ${intent}ing workflow…`);
 
-      fetch("/api/ai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ yaml: source, intent, path: active.path }),
-      })
+      apiPost("/api/ai", { yaml: source, intent, path: active.path })
         .then(async (res) => {
           const data = (await res.json()) as AiResult;
           setAiResult(data);

@@ -12,6 +12,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { parseWorkflow } from "@daggler/workflow-ir";
 import { validateWorkflow } from "@daggler/validators";
 import { ActionlintAdapter } from "@daggler/runner";
+import { guardJson } from "../../../lib/guard";
 
 // ---------------------------------------------------------------------------
 // Request body type
@@ -26,16 +27,10 @@ interface VerifyRequestBody {
 // Handler
 // ---------------------------------------------------------------------------
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
-  let body: VerifyRequestBody;
-  try {
-    body = (await req.json()) as VerifyRequestBody;
-  } catch {
-    return NextResponse.json(
-      { error: "Invalid JSON body" },
-      { status: 400 },
-    );
-  }
+export async function POST(req: NextRequest): Promise<Response> {
+  const guarded = await guardJson(req);
+  if (!guarded.ok) return guarded.response;
+  const body = (guarded.body ?? {}) as VerifyRequestBody;
 
   const { yaml, path } = body;
 
