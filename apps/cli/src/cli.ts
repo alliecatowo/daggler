@@ -35,7 +35,20 @@ import { runLogs } from "./logs.js";
 // Constants
 // ---------------------------------------------------------------------------
 
-const VERSION = "0.1.0";
+// Injected from package.json by tsup (`define`); source runs (tsx/vitest) read it directly.
+declare const __DAGGLER_VERSION__: string | undefined;
+function readVersion(): string {
+  if (typeof __DAGGLER_VERSION__ === "string") return __DAGGLER_VERSION__;
+  try {
+    const pkg = JSON.parse(
+      fs.readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+    ) as { version?: string };
+    return pkg.version ?? "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+const VERSION: string = readVersion();
 
 // Width of the terminal rule drawn above each file section.
 const RULE_WIDTH = 72;

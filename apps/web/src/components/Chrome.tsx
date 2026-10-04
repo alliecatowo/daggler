@@ -7,6 +7,7 @@
  * wired to the live store instead of the static window.DAG mock.
  * ============================================================================ */
 
+import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { prettyPath } from "@daggler/workflow-ir";
 import { useEditor, type RunMode } from "../lib/store";
@@ -117,14 +118,14 @@ export function TopBar(): ReactNode {
       {/* ---- left -------------------------------------------------------- */}
       <div className="ed-top__left">
         {/* Brand */}
-        <a className="ed-brand" href="/">
+        <Link className="ed-brand" href="/">
           <span className="ed-logo">
             <LogoMark size={18} />
           </span>
           <span className="ed-wordmark">
             <b>DAG</b>gler
           </span>
-        </a>
+        </Link>
 
         {/* Separator */}
         <span className="ed-sep" />

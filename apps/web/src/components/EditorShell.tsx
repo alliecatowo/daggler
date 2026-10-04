@@ -1,5 +1,6 @@
 "use client";
 
+import { HOSTED } from "../lib/hosted";
 /* ============================================================================
  * EditorShell — composes the workbench. Every panel reads the shared store via
  * useEditor(), so this is pure layout: top bar, left rail, sidebar, the
@@ -34,6 +35,18 @@ export function EditorShell() {
   return (
     <div className="ed" data-view={view}>
       <TopBar />
+      {HOSTED && (
+        <div className="ed-hosted-note" role="note">
+          <span>
+            Hosted demo: validation, the job graph, event simulation and the
+            policy checks run entirely in your browser. Running workflows and
+            AI are off here.
+          </span>
+          <a href="https://github.com/alliecatowo/daggler#install" target="_blank" rel="noopener noreferrer">
+            Install the CLI to run locally: <code>npx daggler-cli</code>
+          </a>
+        </div>
+      )}
       <div className="ed-body">
         <LeftRail />
         <aside className="ed-side">

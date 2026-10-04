@@ -15,6 +15,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { LogoMark } from "@/components/icons";
+import { HOSTED } from "@/lib/hosted";
 
 /* ============================================================
    Inline SVG icons only used on this page
@@ -263,14 +264,14 @@ export default function LandingPage() {
       <header className="nav">
         <div className="wrap nav__inner">
           {/* Brand */}
-          <a className="brand" href="/">
+          <Link className="brand" href="/">
             <span className="brand__logo">
               <LogoMark size={22} />
             </span>
             <span className="brand__word">
               <b>DAG</b>gler
             </span>
-          </a>
+          </Link>
 
           {/* Centre links */}
           <nav className="nav__links" aria-label="Site navigation">
@@ -278,7 +279,7 @@ export default function LandingPage() {
             <a className="nav__link" href="#security">Security</a>
             <a className="nav__link" href="#selfhost">Self-host</a>
             <a className="nav__link" href="https://alliecatowo.github.io/daggler/" rel="noopener noreferrer">Docs</a>
-            <Link className="nav__link" href="/map">Automation map</Link>
+            {!HOSTED && <Link className="nav__link" href="/map">Automation map</Link>}
           </nav>
 
           {/* Right cluster */}
@@ -748,14 +749,14 @@ export default function LandingPage() {
           <div className="footer__top">
             {/* Brand + tagline */}
             <div style={{ maxWidth: 280 }}>
-              <a className="brand" href="/" style={{ marginBottom: 14, display: "inline-flex" }}>
+              <Link className="brand" href="/" style={{ marginBottom: 14, display: "inline-flex" }}>
                 <span className="brand__logo">
                   <LogoMark size={22} />
                 </span>
                 <span className="brand__word">
                   <b>DAG</b>gler
                 </span>
-              </a>
+              </Link>
               <p style={{ fontSize: 13, color: "var(--text-faint)", lineHeight: 1.5, margin: "10px 0 0" }}>
                 A semantic workbench for GitHub Actions. Native YAML, no lock-in, self-hostable.
               </p>

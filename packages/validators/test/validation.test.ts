@@ -127,3 +127,37 @@ describe("result shape", () => {
     expect(jobOrStep.every((d) => d.span !== undefined)).toBe(true);
   });
 });
+
+describe("regressions", () => {
+  const run = (yaml: string) => validateWorkflow(parseWorkflow(yaml, { path: ".github/workflows/t.yml" }));
+
+  it("include-only matrix does not raise EXPR001", () => {
+    const r = run(`on: push
+jobs:
+  b:
+    runs-on: \${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+    steps:
+      - run: echo hi
+`);
+    expect(r.diagnostics.some((d) => d.code === "EXPR001")).toBe(false);
+  });
+
+  it("POL003 flags job-level write permissions on pull_request_target", () => {
+    const r = run(`on: pull_request_target
+permissions:
+  contents: read
+jobs:
+  b:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - run: echo hi
+`);
+    expect(r.diagnostics.some((d) => d.code === "POL003")).toBe(true);
+  });
+});

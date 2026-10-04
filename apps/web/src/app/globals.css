@@ -1167,3 +1167,14 @@ a.btn { text-decoration: none; }
   padding: 6px 8px;
 }
 .action-insert-btn:hover { background: var(--accent); color: var(--bg-0); border-color: var(--accent); }
+
+/* Hosted demo notice (static build only) */
+.ed-hosted-note {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 4px 16px; padding: 5px 12px; font-size: 12px; line-height: 1.4;
+  color: var(--text-mid); background: var(--accent-soft);
+  border-bottom: 1px solid var(--accent-line);
+}
+.ed-hosted-note a { color: var(--accent-text); text-decoration: none; }
+.ed-hosted-note a:hover { text-decoration: underline; }
+.ed-hosted-note code { font-family: var(--font-mono, monospace); }

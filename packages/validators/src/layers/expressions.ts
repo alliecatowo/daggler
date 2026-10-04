@@ -68,7 +68,8 @@ export const checkExpressions: ValidationLayer = (ctx) => {
         job != null &&
         (job.strategy?.matrix?.fromExpression === true ||
           (job.strategy?.matrix?.dimensions != null &&
-            Object.keys(job.strategy.matrix.dimensions).length > 0));
+            Object.keys(job.strategy.matrix.dimensions).length > 0) ||
+          (job.strategy?.matrix?.include?.length ?? 0) > 0);
 
       if (!hasMatrix) {
         emit(
