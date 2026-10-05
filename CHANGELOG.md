@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] — 2026-10-04
+
+### Security
+- GitHub adapters validate owner, repo, ref, path and input names before calling `gh`; the availability check is cached.
+- Untrusted-input rules (POL008, AGENT001) now catch mixed case, bracket syntax, more event fields (commits, head_commit, workflow_run) and `actions/github-script` scripts.
+- Web server: security headers and CSP, GitHub OAuth state/CSRF check, OAuth tokens stored only encrypted (`DAGGLER_TOKEN_KEY`); Monaco is served locally instead of from a CDN.
+- Dependency overrides for the dompurify and esbuild advisories; CI actions pinned to commit SHAs.
+
+### Fixed
+- `serialize()` no longer writes an invalid `cancelInProgress` key or drops job defaults and the scheduling fields of reusable-workflow call jobs.
+- Editor commands aimed at a missing job or step are rejected instead of creating junk nodes.
+- `daggler run` no longer treats `--repo`/`--ref` values as the workflow file; `daggler verify` exits 1 on actionlint findings.
+- POL009 no longer fires on reusable-workflow call jobs.
+- Webhook jobs receive the workflow YAML and path they expect.
+- Hosted demo: top bar overlap, phone layout, and removal of placeholder claims.
+
 ## [0.1.1] — 2026-10-03
 
 ### Security
