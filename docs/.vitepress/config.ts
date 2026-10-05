@@ -10,7 +10,7 @@ export default defineConfig({
   // /app/ is the static web editor, copied into the site by the docs workflow.
   ignoreDeadLinks: [/\/app\//],
   head: [
-    ["link", { rel: "icon", type: "image/svg+xml", href: "/daggler/favicon.svg" }],
+    ["link", { rel: "icon", type: "image/svg+xml", href: `${process.env.DOCS_BASE ?? "/daggler/"}favicon.svg` }],
     ["link", { rel: "preconnect", href: "https://fonts.googleapis.com" }],
     ["link", { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" }],
     [

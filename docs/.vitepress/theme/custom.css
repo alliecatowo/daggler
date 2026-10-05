@@ -829,7 +829,16 @@ body {
 }
 .term pre span {
   display: block;
-  white-space: pre;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding-left: 2ch;
+  text-indent: -2ch;
+}
+.term pre span.e,
+.term pre span.w,
+.term pre span.f {
+  padding-left: 4ch;
+  text-indent: -4ch;
 }
 .term pre span.m {
   white-space: pre-wrap;
@@ -840,6 +849,9 @@ body {
 .term pre span.r {
   white-space: nowrap;
   overflow: hidden;
+  padding-left: 0;
+  text-indent: 0;
+  color: var(--mute);
 }
 .term .e {
   color: var(--sig);

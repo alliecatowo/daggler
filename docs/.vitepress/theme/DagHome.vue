@@ -2,9 +2,9 @@
 import { computed, ref } from "vue";
 import { withBase } from "vitepress";
 import lintOut from "./data/release-lint.txt?raw";
-import workflowSrc from "./data/release.yml?raw";
+import workflowSrc from "../../../examples/insecure-release.yml?raw";
 
-/* ---- the drawing: jobs of the example release.yml, edges from `needs` ---- */
+/* ---- the drawing: jobs of examples/insecure-release.yml, edges from `needs` ---- */
 type Job = {
   id: string;
   needs: string[];
@@ -31,16 +31,16 @@ type Finding = {
   title: string;
 };
 const FINDINGS: Finding[] = [
-  { n: 1, code: "POL007", sev: "error", at: "lint", loc: "12:9", title: "Action ref uses a branch" },
-  { n: 2, code: "POL008", sev: "error", at: "test", loc: "19:9", title: "Shell injection from untrusted input" },
-  { n: 3, code: "POL002", sev: "error", at: "build", loc: "27:9", title: "Third-party action not SHA-pinned" },
-  { n: 4, code: "POL003", sev: "error", at: "publish", loc: "52:5", title: "Privileged token on an untrusted event" },
-  { n: 5, code: "POL004", sev: "error", at: "publish", loc: "57:9", title: "Secret reachable from untrusted event" },
-  { n: 6, code: "POL004", sev: "error", at: "deploy", loc: "66:9", title: "Secret reachable from untrusted event" },
+  { n: 1, code: "POL007", sev: "error", at: "lint", loc: "14:9", title: "Action ref uses a branch" },
+  { n: 2, code: "POL008", sev: "error", at: "test", loc: "21:9", title: "Shell injection from untrusted input" },
+  { n: 3, code: "POL002", sev: "error", at: "build", loc: "29:9", title: "Third-party action not SHA-pinned" },
+  { n: 4, code: "POL003", sev: "error", at: "publish", loc: "54:5", title: "Privileged token on an untrusted event" },
+  { n: 5, code: "POL004", sev: "error", at: "publish", loc: "59:9", title: "Secret reachable from untrusted event" },
+  { n: 6, code: "POL004", sev: "error", at: "deploy", loc: "68:9", title: "Secret reachable from untrusted event" },
   { n: 7, code: "POL001", sev: "warning", at: "workflow", loc: "permissions", title: "No top-level permissions" },
-  { n: 8, code: "POL006", sev: "warning", at: "publish", loc: "49:3", title: "Deploy without environment gate" },
-  { n: 9, code: "POL009", sev: "warning", at: "publish", loc: "49:3", title: "OIDC permission without a cloud step" },
-  { n: 10, code: "POL006", sev: "warning", at: "deploy", loc: "61:3", title: "Deploy without environment gate" },
+  { n: 8, code: "POL006", sev: "warning", at: "publish", loc: "51:3", title: "Deploy without environment gate" },
+  { n: 9, code: "POL009", sev: "warning", at: "publish", loc: "51:3", title: "OIDC permission without a cloud step" },
+  { n: 10, code: "POL006", sev: "warning", at: "deploy", loc: "63:3", title: "Deploy without environment gate" },
 ];
 
 const active = ref(0);
@@ -147,8 +147,8 @@ const SHEETS = 6;
         </h1>
         <p class="lede">
           Daggler parses GitHub Actions workflows into a typed graph, validates them in five layers
-          and scores their security. Below is a real release workflow and what
-          <code>daggler lint</code> found in it, pinned where it was found.
+          and scores their security. Below is an example release workflow with common mistakes, and what
+          <code>daggler lint</code> actually reported on it, pinned to the job where it was found.
         </p>
         <div class="cta">
           <a class="btn solid" :href="withBase('/app/editor/')" target="_self">Open the editor</a>
@@ -156,9 +156,9 @@ const SHEETS = 6;
           <code class="cmd" aria-label="install command"><span>$</span> npx daggler-cli lint</code>
         </div>
 
-        <figure class="dag" aria-label="Job graph of release.yml with ten lint findings pinned to jobs">
+        <figure class="dag" aria-label="Job graph of insecure-release.yml with ten lint findings pinned to jobs">
           <!-- wide drawing -->
-          <svg class="dag-d" viewBox="0 0 1100 336" role="img" aria-label="Job dependency graph of release.yml: lint and test feed build, build feeds e2e and docs, both feed publish, publish feeds deploy. Ten findings are marked.">
+          <svg class="dag-d" viewBox="0 0 1100 336" role="img" aria-label="Job dependency graph of insecure-release.yml: lint and test feed build, build feeds e2e and docs, both feed publish, publish feeds deploy. Ten findings are marked.">
             <defs>
               <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
                 <path d="M0 1 L10 5 L0 9 z" class="arrow" />
@@ -204,7 +204,7 @@ const SHEETS = 6;
           </svg>
 
           <!-- narrow drawing -->
-          <svg class="dag-m" viewBox="0 0 340 664" role="img" aria-label="Job dependency graph of release.yml, drawn top to bottom, with ten findings marked.">
+          <svg class="dag-m" viewBox="0 0 340 664" role="img" aria-label="Job dependency graph of insecure-release.yml, drawn top to bottom, with ten findings marked.">
             <defs>
               <marker id="ahm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
                 <path d="M0 1 L10 5 L0 9 z" class="arrow" />
@@ -239,7 +239,7 @@ const SHEETS = 6;
         <div class="sched-wrap">
           <table class="sched">
             <caption>
-              Findings schedule <span class="mute">from <code>daggler lint</code> on release.yml · security grade F, 0/100 · 6 errors, 4 warnings</span>
+              Findings schedule <span class="mute">from <code>daggler lint</code> on examples/insecure-release.yml · security grade F, 0/100 · 6 errors, 4 warnings</span>
             </caption>
             <thead>
               <tr><th>No.</th><th>Code</th><th>Where</th><th>Finding</th></tr>
@@ -266,7 +266,7 @@ const SHEETS = 6;
         </div>
 
         <div class="tblock">
-          <div class="tb-title"><i>Title</i>release.yml, dependency graph</div>
+          <div class="tb-title"><i>Title</i>insecure-release.yml, dependency graph</div>
           <div><i>Project</i>daggler</div>
           <div><i>Sheet</i>1 of {{ SHEETS }}</div>
           <div><i>Rev</i>0.1.2</div>
@@ -282,18 +282,18 @@ const SHEETS = 6;
         <h2 id="s2" class="sheet-h">The same file, as the terminal prints it</h2>
         <p class="lede">
           This is the unedited output of <code>npx daggler-cli@0.1.2 lint --no-color</code> on the
-          workflow above. Every line is addressed: file, line, column, and what to do about it. The exit
+          workflow above (<code>examples/insecure-release.yml</code> in the repo). Every line is addressed: file, line, column, and what to do about it. The exit
           code is <code>1</code> whenever there is an error, so it can gate CI.
         </p>
         <div class="term" role="region" aria-label="daggler lint output" tabindex="0">
-          <div class="term-bar">$ npx daggler-cli lint --no-color .github/workflows/release.yml</div>
+          <div class="term-bar">$ npx daggler-cli lint --no-color examples/insecure-release.yml</div>
           <pre><span v-for="(l, i) in outLines" :key="i" :class="l.cls">{{ l.t || " " }}</span></pre>
         </div>
         <button class="btn small" type="button" :aria-expanded="showSrc" @click="showSrc = !showSrc">
-          {{ showSrc ? "Hide" : "Show" }} release.yml ({{ workflowSrc.trim().split("\n").length }} lines)
+          {{ showSrc ? "Hide" : "Show" }} insecure-release.yml ({{ workflowSrc.trim().split("\n").length }} lines)
         </button>
         <div v-if="showSrc" class="term src">
-          <div class="term-bar">.github/workflows/release.yml</div>
+          <div class="term-bar">examples/insecure-release.yml</div>
           <pre>{{ workflowSrc }}</pre>
         </div>
         <div class="tblock">
