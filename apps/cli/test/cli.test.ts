@@ -121,3 +121,20 @@ describe("daggler cli", () => {
     expect(r.all).toContain("Usage: daggler run");
   });
 });
+
+describe("run: flag values are not mistaken for the workflow file", () => {
+  it("reports the real file when --repo precedes it", async () => {
+    const { runRun } = await import("../src/run.js");
+    let err = "";
+    const w = process.stderr.write.bind(process.stderr);
+    (process.stderr as any).write = (c: any) => ((err += String(c)), true);
+    try {
+      const code = await runRun(["--repo", "o/r", "does-not-exist.yml"]);
+      expect(code).toBe(1);
+    } finally {
+      (process.stderr as any).write = w;
+    }
+    expect(err).toContain("does-not-exist.yml");
+    expect(err).not.toContain("o/r:");
+  });
+});

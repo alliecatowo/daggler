@@ -177,7 +177,11 @@ export async function runRun(args: string[]): Promise<number> {
   }
 
   // First positional arg (not a flag) is the file
-  const positional = args.filter((a) => !a.startsWith("--"));
+  // (skip the values that belong to --repo / --ref)
+  const positional = args.filter(
+    (a, i) =>
+      !a.startsWith("--") && args[i - 1] !== "--repo" && args[i - 1] !== "--ref",
+  );
   const fileArg = positional[0];
 
   if (!fileArg) {
