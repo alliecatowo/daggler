@@ -143,7 +143,11 @@ export const PRIVILEGED_UNTRUSTED_EVENTS = [
   "discussion_comment",
 ];
 
-/** `github.event.*` paths that are attacker-controllable on the danger events. */
+/**
+ * `github.*` paths that are attacker-controllable (see GitHub's "Understanding
+ * the risk of script injections"). `*` stands for any one path segment, which
+ * also covers array indexes such as `commits[0]`.
+ */
 export const UNTRUSTED_EVENT_FIELDS = [
   "github.event.issue.title",
   "github.event.issue.body",
@@ -151,9 +155,53 @@ export const UNTRUSTED_EVENT_FIELDS = [
   "github.event.pull_request.body",
   "github.event.pull_request.head.ref",
   "github.event.pull_request.head.label",
+  "github.event.pull_request.head.repo.default_branch",
   "github.event.comment.body",
   "github.event.review.body",
+  "github.event.review_comment.body",
   "github.event.discussion.title",
   "github.event.discussion.body",
+  "github.event.pages.*.page_name",
+  "github.event.commits.*.message",
+  "github.event.commits.*.author.email",
+  "github.event.commits.*.author.name",
+  "github.event.head_commit.message",
+  "github.event.head_commit.author.email",
+  "github.event.head_commit.author.name",
+  "github.event.workflow_run.head_branch",
+  "github.event.workflow_run.display_title",
+  "github.event.workflow_run.head_commit.message",
+  "github.event.workflow_run.head_commit.author.email",
+  "github.event.workflow_run.head_commit.author.name",
+  "github.event.workflow_run.pull_requests.*.head.ref",
   "github.head_ref",
 ];
+
+/**
+ * Canonical form of an expression body for matching: contexts and properties
+ * are case-insensitive in GitHub expressions, and `a['b']`, `a["b"]`, `a[0]`
+ * and `a[*]` are the same as `a.b`, `a.0`, `a.*`.
+ */
+export function normalizeExpressionBody(body: string): string {
+  return body
+    .toLowerCase()
+    .replace(/\[\s*(['"])([^'"\]]*)\1\s*\]/g, ".$2")
+    .replace(/\[\s*(\d+|\*)\s*\]/g, ".$1")
+    .replace(/\s*\.\s*/g, ".");
+}
+
+const UNTRUSTED_MATCHERS = UNTRUSTED_EVENT_FIELDS.map((field) => ({
+  field,
+  re: new RegExp(
+    `(?<![\\w.-])${field
+      .toLowerCase()
+      .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
+      .replace(/\\\.\*(?=\\\.|$)/g, "\\.[^.\\s()]+")}(?![\\w-])`,
+  ),
+}));
+
+/** The UNTRUSTED_EVENT_FIELDS referenced by one expression body. */
+export function untrustedFieldsIn(body: string): string[] {
+  const norm = normalizeExpressionBody(body);
+  return UNTRUSTED_MATCHERS.filter((m) => m.re.test(norm)).map((m) => m.field);
+}

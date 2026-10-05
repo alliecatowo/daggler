@@ -47,6 +47,22 @@ function ghBin(): string | null {
   return which("gh");
 }
 
+const SLUG_RE = /^[A-Za-z0-9_.][A-Za-z0-9_.-]{0,99}\/[A-Za-z0-9_.][A-Za-z0-9_.-]{0,99}$/;
+const REF_RE = /^[A-Za-z0-9_./-]{1,200}$/;
+const FILE_RE = /^[A-Za-z0-9_./-]{1,200}$/;
+const INPUT_KEY_RE = /^[A-Za-z_][A-Za-z0-9_-]{0,99}$/;
+
+/** True for an `owner/repo` slug that cannot escape its API path or be read as a flag. */
+export function isSafeRepoSlug(v: string): boolean {
+  return SLUG_RE.test(v) && v.split("/").every((p) => p !== "." && p !== "..");
+}
+export function isSafeRef(v: string): boolean {
+  return REF_RE.test(v) && !v.includes("..") && !v.startsWith("-");
+}
+export function isSafeWorkflowFile(v: string): boolean {
+  return FILE_RE.test(v) && !v.split("/").includes("..") && !v.startsWith("-");
+}
+
 function makeLog(
   seq: number,
   message: string,
@@ -137,6 +153,12 @@ export class GitHubDispatchAdapter implements RunnerPort {
    * Trigger a workflow via `gh workflow run`.
    */
   dispatch(opts: DispatchOpts): { ok: boolean; message: string } {
+    if (!isSafeRepoSlug(opts.repo)) return { ok: false, message: "invalid repository slug" };
+    if (!isSafeRef(opts.ref)) return { ok: false, message: "invalid ref" };
+    if (!isSafeWorkflowFile(opts.workflowFile)) return { ok: false, message: "invalid workflow file" };
+    for (const k of Object.keys(opts.inputs ?? {})) {
+      if (!INPUT_KEY_RE.test(k)) return { ok: false, message: "invalid workflow input name" };
+    }
     if (!ghBin()) {
       return { ok: false, message: "gh not found" };
     }
@@ -170,6 +192,7 @@ export class GitHubDispatchAdapter implements RunnerPort {
     repo: string,
     workflowFile: string,
   ): GhRunListItem | null {
+    if (!isSafeRepoSlug(repo) || !isSafeWorkflowFile(workflowFile)) return null;
     const result = runGh([
       "run", "list",
       "--repo", repo,
@@ -196,6 +219,9 @@ export class GitHubDispatchAdapter implements RunnerPort {
    * Returns captured output lines.
    */
   watch(repo: string, runId: number): string[] {
+    if (!isSafeRepoSlug(repo) || !Number.isSafeInteger(runId) || runId < 0) {
+      return ["invalid repository or run id"];
+    }
     const result = runGh([
       "run", "watch", String(runId),
       "--repo", repo,

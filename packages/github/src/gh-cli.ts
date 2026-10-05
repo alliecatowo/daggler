@@ -13,6 +13,13 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
+import {
+  assertInputKey,
+  assertRef,
+  assertRepoPath,
+  assertRepoRef,
+  assertSha,
+} from "./validate.js";
 import type {
   BranchRef,
   FileBlob,
@@ -123,18 +130,34 @@ function normalizeConclusion(raw: string | null): WorkflowRunConclusion {
 // Adapter
 // ---------------------------------------------------------------------------
 
+/** `gh auth status` is a process spawn plus a network call; cache briefly. */
+const AVAILABLE_TTL_MS = 30_000;
+let availCache: { ok: boolean; at: number } | null = null;
+
 export class GhCliAdapter implements GitHubRepositoryPort {
   /**
    * Returns true when the gh CLI is on $PATH AND `gh auth status` exits 0.
    * Safe to call multiple times; each call shells out.
    */
   static async isAvailable(): Promise<boolean> {
+    const now = Date.now();
+    if (availCache && now - availCache.at < AVAILABLE_TTL_MS) {
+      return availCache.ok;
+    }
+    let ok = false;
     try {
       await run(["auth", "status"]);
-      return true;
+      ok = true;
     } catch {
-      return false;
+      ok = false;
     }
+    availCache = { ok, at: now };
+    return ok;
+  }
+
+  /** Forget the cached availability result (tests, after `gh auth login`). */
+  static resetAvailabilityCache(): void {
+    availCache = null;
   }
 
   /** Shared guard — throws NOT_CONNECTED if gh is unavailable. */
@@ -192,6 +215,9 @@ export class GhCliAdapter implements GitHubRepositoryPort {
    * then base64-decodes the content field.
    */
   async getFile(repo: RepoRef, path: string, ref?: string): Promise<FileBlob> {
+    assertRepoRef(repo);
+    assertRepoPath(path);
+    if (ref !== undefined) assertRef(ref);
     await this.requireGh();
 
     const refParam = ref ? `?ref=${encodeURIComponent(ref)}` : "";
@@ -229,6 +255,8 @@ export class GhCliAdapter implements GitHubRepositoryPort {
    * not exist (404).
    */
   async listWorkflowFiles(repo: RepoRef, ref?: string): Promise<string[]> {
+    assertRepoRef(repo);
+    if (ref !== undefined) assertRef(ref);
     await this.requireGh();
 
     const refParam = ref ? `?ref=${encodeURIComponent(ref)}` : "";
@@ -272,6 +300,9 @@ export class GhCliAdapter implements GitHubRepositoryPort {
     name: string,
     fromSha: string,
   ): Promise<BranchRef> {
+    assertRepoRef(repo);
+    assertRef(name, "branch name");
+    assertSha(fromSha);
     await this.requireGh();
 
     const endpoint = `repos/${repo.owner}/${repo.repo}/git/refs`;
@@ -310,6 +341,9 @@ export class GhCliAdapter implements GitHubRepositoryPort {
     content: string,
     message: string,
   ): Promise<FileBlob> {
+    assertRepoRef(repo);
+    assertRef(branch, "branch");
+    assertRepoPath(path);
     await this.requireGh();
 
     const endpoint = `repos/${repo.owner}/${repo.repo}/contents/${path}`;
@@ -370,6 +404,9 @@ export class GhCliAdapter implements GitHubRepositoryPort {
     title: string,
     body: string,
   ): Promise<PullRequestRef> {
+    assertRepoRef(repo);
+    assertRef(headRef, "head ref");
+    assertRef(baseRef, "base ref");
     await this.requireGh();
 
     try {
@@ -424,6 +461,7 @@ export class GhCliAdapter implements GitHubRepositoryPort {
    * Returns at most 20 runs, most recent first.
    */
   async listWorkflowRuns(repo: RepoRef): Promise<WorkflowRunRef[]> {
+    assertRepoRef(repo);
     await this.requireGh();
 
     try {
@@ -471,6 +509,10 @@ export class GhCliAdapter implements GitHubRepositoryPort {
     ref: string,
     inputs?: Record<string, string>,
   ): Promise<void> {
+    assertRepoRef(repo);
+    assertRepoPath(path);
+    assertRef(ref);
+    for (const k of Object.keys(inputs ?? {})) assertInputKey(k);
     await this.requireGh();
 
     // gh workflow run accepts the filename (e.g. "ci.yml") or the workflow name.

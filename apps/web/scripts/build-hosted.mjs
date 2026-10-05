@@ -15,6 +15,9 @@ const api = join(root, "src", "app", "api");
 // Same filesystem as the source tree (rename cannot cross devices).
 const stash = join(root, ".api-stash");
 
+const cp = spawnSync("node", [join(root, "scripts", "copy-monaco.mjs")], { stdio: "inherit" });
+if (cp.status !== 0) process.exit(cp.status ?? 1);
+
 let moved = false;
 if (existsSync(api)) {
   renameSync(api, stash);

@@ -9,8 +9,13 @@
  *  • Moving the cursor selects the owning node (graph + inspector follow).
  * ============================================================================ */
 
-import Editor, { type Monaco, type OnMount } from "@monaco-editor/react";
+import Editor, { loader, type Monaco, type OnMount } from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
+
+// Serve Monaco from this origin (see scripts/copy-monaco.mjs), not the jsdelivr CDN.
+loader.config({
+  paths: { vs: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/monaco/vs` },
+});
 import { useCallback, useEffect, useRef } from "react";
 import { useEditor } from "../lib/store";
 import { pathToSelection, selectionKey, selectionToPath } from "../lib/selection";

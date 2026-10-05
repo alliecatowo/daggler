@@ -19,24 +19,24 @@ jobs:
       id-token: write # OIDC token for trusted publishing and provenance
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version-file: .node-version
-          cache: pnpm
-          registry-url: 'https://registry.npmjs.org'
-      - run: pnpm install --frozen-lockfile
+          persist-credentials: false
+      - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
+        with:
+          install: true
+          cache: false # publishing job: no restored caches
+      - run: mise run install
       - name: Tag matches apps/cli version
         run: |
           tag="${GITHUB_REF_NAME#v}"
           pkg="$(node -p 'require("./apps/cli/package.json").version')"
           [ "$tag" = "$pkg" ] || { echo "tag $tag != apps/cli version $pkg" >&2; exit 1; }
-      - run: pnpm -r typecheck
-      - run: pnpm -r test
-      - run: pnpm --filter daggler-cli build
+      - run: mise run typecheck
+      - run: mise run test
+      - run: mise run build:cli
       # Trusted publishing (OIDC) needs npm >= 11.5.1; Node's bundled npm is older.
       - name: Upgrade npm for trusted publishing
-        run: npm install -g npm@latest && npm --version
+        run: npm install -g npm@11 && npm --version
       # pnpm packs (resolving workspace: deps), npm >= 11.5.1 publishes via OIDC.
       - name: Publish daggler-cli to npm
         working-directory: apps/cli

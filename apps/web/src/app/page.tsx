@@ -292,7 +292,6 @@ export default function LandingPage() {
             >
               <GitHubIcon />
               Star
-              <span className="nav__star">2.4k</span>
             </a>
 
             {/* Theme toggle — persists to localStorage */}
@@ -355,7 +354,7 @@ export default function LandingPage() {
           </div>
 
           {/* Fine print */}
-          <div className="hero__note">npx daggler bridge · MIT licensed core</div>
+          <div className="hero__note">npx daggler-cli lint · MIT licensed</div>
         </div>
 
         {/* ---- Product shot ---- */}
@@ -369,7 +368,7 @@ export default function LandingPage() {
                 <span />
                 <span />
               </div>
-              <span className="shot__url">daggler.dev/app/acme/web-platform/workflows/ci.yml</span>
+              <span className="shot__url">sample workflow · .github/workflows/ci.yml</span>
             </div>
 
             {/*
@@ -464,14 +463,11 @@ export default function LandingPage() {
           TRUST STRIP
           ================================================================ */}
       <div className="wrap trust">
-        <div className="trust__label">Reads the workflows you already have</div>
+        <div className="trust__label">Works with the tools you already use</div>
         <div className="trust__row" role="group" aria-label="Ecosystems supported">
-          <span>Vercel</span>
-          <span>Neon</span>
-          <span>Drizzle</span>
           <span>actionlint</span>
-          <span>Octokit</span>
           <span>act</span>
+          <span>gh CLI</span>
         </div>
       </div>
 
@@ -539,7 +535,7 @@ export default function LandingPage() {
               <div className="rung__body">
                 <h4>Local approximation</h4>
                 <p>
-                  Pair a local bridge with <span className="mono">npx daggler bridge</span> to run
+                  Pair a local bridge with <span className="mono">npx daggler-cli bridge</span> to run
                   actionlint and <span className="mono">act</span> against a real checkout. Useful,
                   not authoritative.
                 </p>
@@ -670,10 +666,10 @@ export default function LandingPage() {
         <div className="wrap">
           <div className="section__head center">
             <div className="section__tag">No lock-in</div>
-            <h2>Run it yourself. Same image, your infrastructure.</h2>
+            <h2>Run it yourself. Your machine, your credentials.</h2>
             <p className="section__lead">
-              Daggler is a modular monolith — web, worker, Postgres, and an optional bridge. No
-              Redis, no Kubernetes, no proprietary backend. Bring your own GitHub App.
+              The CLI and the editor run entirely on your machine, with your own gh login. No
+              account, no hosted backend, and your workflows never leave your computer.
             </p>
           </div>
 
@@ -685,31 +681,27 @@ export default function LandingPage() {
                 <span />
                 <span />
               </div>
-              <span className="mono">~/daggler — docker compose</span>
+              <span className="mono">~/daggler — run it yourself</span>
             </div>
             <div className="codewell__body">
               <span className="cl">
-                <span className="c"># clone and bring up the full stack</span>
+                <span className="c"># lint any repo's workflows, no install</span>
+              </span>
+              <span className="cl">
+                <span className="ok">$</span> npx daggler-cli lint
+              </span>
+              <span className="cl"> </span>
+              <span className="cl">
+                <span className="c"># or run this editor locally, with real runs</span>
               </span>
               <span className="cl">
                 <span className="ok">$</span> git clone https://github.com/alliecatowo/daggler
               </span>
               <span className="cl">
-                <span className="ok">$</span> cp .env.example .env{" "}
-                <span className="c"># add GitHub App creds + DAGGLER_SECRET_KEY</span>
+                <span className="ok">$</span> cd daggler && pnpm install && pnpm web
               </span>
               <span className="cl">
-                <span className="ok">$</span> docker compose up -d
-              </span>
-              <span className="cl"> </span>
-              <span className="cl">
-                <span className="k">web</span>{"      "}ready  →  http://localhost:3000
-              </span>
-              <span className="cl">
-                <span className="k">worker</span>{"   "}ready  →  graphile-worker · 4 jobs
-              </span>
-              <span className="cl">
-                <span className="k">postgres</span>{" "}ready  →  neon-compatible schema
+                <span className="k">editor</span>{"  "}→  http://127.0.0.1:3737
               </span>
             </div>
           </div>
@@ -723,7 +715,7 @@ export default function LandingPage() {
         <div className="wrap">
           <h2>Untangle your workflows.</h2>
           <p className="cta__sub">
-            Connect a repo and Daggler maps your entire CI surface in under a minute.
+            Lint your workflows in one command, or open the editor and see them as a graph.
           </p>
           <div className="hero__cta">
             <Link className="btn btn--primary btn--lg" href="/editor">

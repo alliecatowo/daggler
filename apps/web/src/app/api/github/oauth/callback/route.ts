@@ -14,8 +14,10 @@ import { type NextRequest, NextResponse } from "next/server";
 import {
   loadGitHubAppConfigFromEnv,
   exchangeOAuthCode,
+  verifyOAuthState,
   NotConfiguredError,
 } from "@daggler/github";
+import { saveOAuthToken } from "../../../../../lib/token-store";
 
 // ---------------------------------------------------------------------------
 // Handler
@@ -56,6 +58,21 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
 
+  // CSRF / login-fixation guard: the state must equal the cookie set by
+  // /api/github/oauth/start in this same browser. The cookie is single-use.
+  const stateOk = verifyOAuthState(
+    searchParams.get("state"),
+    req.cookies.get("daggler_oauth_state")?.value,
+  );
+  if (!stateOk) {
+    const denied = new NextResponse(
+      "OAuth state mismatch or missing. Start the sign-in again from Daggler.",
+      { status: 400, headers: { "Content-Type": "text/plain; charset=utf-8" } },
+    );
+    denied.cookies.delete("daggler_oauth_state");
+    return denied;
+  }
+
   if (!code) {
     return new NextResponse(
       "Missing ?code= parameter in the OAuth callback URL.",
@@ -66,15 +83,18 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     // Exchange the code for a token. We do NOT log or expose the token in the
     // response body — only a success acknowledgment is returned.
-    await exchangeOAuthCode(config, code);
+    const tok = await exchangeOAuthCode(config, code);
+    // Persist only encrypted (needs DAGGLER_TOKEN_KEY); never plaintext.
+    const saved = tok.access_token ? await saveOAuthToken(tok.access_token) : { saved: false as const, reason: "no token returned" };
 
-    return new NextResponse(
+    const res = new NextResponse(
       `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><title>Connected — Daggler</title></head>
 <body>
 <h1>GitHub account connected</h1>
 <p>Authorization was successful. You can close this tab and return to Daggler.</p>
+<p>${saved.saved ? "The token was stored encrypted on this server." : "The token was not stored: set DAGGLER_TOKEN_KEY (openssl rand -hex 32) to enable encrypted storage."}</p>
 </body>
 </html>`,
       {
@@ -82,6 +102,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         headers: { "Content-Type": "text/html; charset=utf-8" },
       },
     );
+    res.cookies.delete("daggler_oauth_state");
+    return res;
   } catch (err: unknown) {
     if (err instanceof NotConfiguredError) {
       return new NextResponse(

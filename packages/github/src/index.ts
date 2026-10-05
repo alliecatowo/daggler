@@ -35,3 +35,22 @@ export {
   NotConfiguredError,
 } from "./app-auth.js";
 export type { GitHubAppConfig, OAuthTokenResponse } from "./app-auth.js";
+
+export {
+  InvalidArgumentError,
+  assertRepoRef,
+  assertRef,
+  assertRepoPath,
+  assertSha,
+} from "./validate.js";
+
+export {
+  TokenKeyError,
+  parseTokenKey,
+  encryptToken,
+  decryptToken,
+  hashRegistrationToken,
+  generateOAuthState,
+  verifyOAuthState,
+  buildAuthorizeUrl,
+} from "./token-crypto.js";

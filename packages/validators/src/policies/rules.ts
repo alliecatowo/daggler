@@ -31,7 +31,7 @@ import {
   effectivePermissions,
   hasTrigger,
   PRIVILEGED_UNTRUSTED_EVENTS,
-  UNTRUSTED_EVENT_FIELDS,
+  untrustedFieldsIn,
 } from "../walk.js";
 import { lookupActionMeta } from "./catalog.js";
 
@@ -81,7 +81,7 @@ function grantsIdTokenWrite(
  * The body is trimmed when comparing.
  */
 function untrustedFieldsInBody(body: string): string[] {
-  return UNTRUSTED_EVENT_FIELDS.filter((f) => body.includes(f));
+  return untrustedFieldsIn(body);
 }
 
 /**
@@ -497,6 +497,26 @@ permissions:
             source: "security",
             title: "Shell injection from untrusted input",
             message: `Untrusted '${field}' is interpolated into a shell script — an attacker can inject commands. Pass it via an env var and quote it instead.`,
+            path: expr.path,
+            docsUrl:
+              "https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections",
+          });
+        }
+      }
+
+      // actions/github-script: an interpolated `script` is JavaScript source,
+      // so untrusted text there is code injection just like a run: script.
+      for (const expr of collectExpressions(ctx.ir)) {
+        if (expr.field !== "with:script") continue;
+        const step = eachUsesStep(ctx.ir).find((u) => u.step.path === expr.path)?.step;
+        if (!step || !/^actions\/github-script(@|$)/i.test(step.uses)) continue;
+        for (const field of untrustedFieldsInBody(expr.body)) {
+          findings.push({
+            code: "POL008",
+            severity: "error",
+            source: "security",
+            title: "Shell injection from untrusted input",
+            message: `Untrusted '${field}' is interpolated into a github-script 'script' — an attacker can inject JavaScript. Pass it via env and read process.env instead.`,
             path: expr.path,
             docsUrl:
               "https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections",
