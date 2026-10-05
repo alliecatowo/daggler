@@ -1,49 +1,65 @@
 # Getting started
 
-Daggler has two front ends over the same engine: a terminal linter (`daggler-cli` on npm) and a browser editor you run from a checkout of the repo.
+Daggler has two front ends over one engine: a terminal linter (`daggler-cli` on npm, version 0.1.2) and a [browser editor](/guide/web-editor). Both parse a workflow into a typed graph, run five validation layers over it and apply thirteen security rules.
 
-## Install the CLI
+## 1. Try it without installing
+
+Open the [hosted editor](../app/editor/){target="_self"}. It runs the whole pipeline in your browser: paste a workflow, watch the job graph redraw and read the diagnostics. Nothing is uploaded. Running workflows, GitHub dispatch and AI are switched off in the hosted build; see [Hosted editor](/guide/web-editor).
+
+## 2. Lint a repository
 
 Requires Node 20 or newer.
-
-```bash
-npm install -g daggler-cli
-daggler lint
-```
-
-Or run it once without installing:
 
 ```bash
 npx daggler-cli lint
 ```
 
-The package is [`daggler-cli`](https://www.npmjs.com/package/daggler-cli); the binary it installs is `daggler`. With no arguments `daggler lint` scans `.github/workflows/`. If that directory does not exist it falls back to bundled sample workflows as a demo.
+With no arguments `lint` scans `.github/workflows/`. If that directory does not exist it falls back to bundled sample workflows as a demo, and says so.
+
+To keep it installed (the package is `daggler-cli`, the binary is `daggler`):
+
+```bash
+npm install -g daggler-cli
+daggler --version   # 0.1.2
+daggler lint
+```
+
+Lint one file, several files, or a directory:
 
 ```bash
 daggler lint .github/workflows/ci.yml
-daggler lint .github/workflows/ --json
 daggler lint ci.yml deploy.yml --quiet
+daggler lint .github/workflows/ --json
 ```
 
-Exit code is `1` when any error-severity finding is reported. See the [CLI reference](/reference/cli) for every command.
+## 3. Read the report
 
-## Run the web editor
-
-There is a hosted demo at <a href="../app/editor/" target="_self">/app/editor</a>: validation, the job graph, event simulation and policy checks run in your browser, and running workflows, GitHub dispatch and AI are off. For those, run the editor from source (Node 20+, pnpm 10+):
-
-```bash
-git clone https://github.com/alliecatowo/daggler
-cd daggler
-pnpm install
-pnpm --filter @daggler/web dev
+```text
+.github/workflows/release.yml  Security F 0/100
+6 errors  ·  4 warnings  ·  0 info
+● POL007  .github/workflows/release.yml:12:9  Action ref uses a branch
+└─ 'actions/checkout@main' tracks a moving branch ...
+▲ POL001  .github/workflows/release.yml:workflow:permissions  No top-level permissions
 ```
 
-It opens at `http://localhost:3737` with bundled sample workflows. No database or GitHub connection is needed. See [Web editor](/guide/web-editor).
+- `●` is an error and `▲` a warning. The location is `file:line:column`, or a path such as `workflow:permissions` when the problem is the absence of a block.
+- The score runs from 0 to 100 and is graded A to F per workflow. The lines marked `⚑` name the factors that cost points.
+- The rule codes are explained in [Policy rules](/reference/policy-rules); the non-security layers in [Validation layers](/reference/validation).
 
-## Run the tests
+## 4. Use it in CI
 
-```bash
-pnpm test
+`lint` exits `1` when any error-severity finding is reported, so a plain step gates a pull request:
+
+```yaml
+- run: npx daggler-cli@0.1.2 lint --no-color
 ```
 
-![The Daggler editor](../images/editor.png)
+Warnings alone do not fail the run. Add `--quiet` to print only errors, or `--json` to feed another tool.
+
+## 5. Go further
+
+- Cross-check against actionlint with `daggler verify` (install [actionlint](https://github.com/rhysd/actionlint) first).
+- Map a whole repository's automation with `daggler map`, or any repository you can read through `gh` with `daggler map owner/repo`.
+- Climb the [confidence ladder](/guide/confidence-ladder) with `daggler run`.
+- Run the full editor from source: see [Hosted editor](/guide/web-editor#run-the-full-editor-locally) and [Self-hosting](/guide/self-hosting).
+- Every command and flag is in the [CLI reference](/reference/cli).

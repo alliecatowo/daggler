@@ -1,0 +1,68 @@
+name: release
+on:
+  pull_request_target:
+    branches: [main]
+  push:
+    tags: ["v*"]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+      - run: npm ci && npm run lint
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Testing ${{ github.event.pull_request.title }}"
+      - run: npm test
+
+  build:
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/build-push-action@v5
+        with:
+          push: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  e2e:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+      - run: npm run e2e
+
+  docs:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+      - run: npm run docs
+
+  publish:
+    needs: [e2e, docs]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+      - run: npm publish --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  deploy:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+      - run: ./scripts/deploy.sh
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
