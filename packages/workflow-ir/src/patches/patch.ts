@@ -59,11 +59,51 @@ function currentNeeds(doc: Document, jobId: string): string[] {
   return Array.isArray(js) ? js.map(String) : [String(js)];
 }
 
+/** Reject commands aimed at a job/step that is not in the document, instead of creating junk nodes. */
+function validateTarget(doc: Document, command: EditorCommand): string | undefined {
+  const cmd = command as unknown as {
+    jobId?: string;
+    index?: number;
+    need?: string;
+    scope?: "workflow" | { jobId: string };
+  };
+  const jobId =
+    cmd.jobId ??
+    (cmd.scope && cmd.scope !== "workflow" ? cmd.scope.jobId : undefined);
+  if (jobId !== undefined && !doc.hasIn(jobBase(jobId))) {
+    return `Job '${jobId}' does not exist`;
+  }
+  if (command.type === "job.addNeed" && cmd.need !== undefined) {
+    if (!doc.hasIn(jobBase(cmd.need))) return `Job '${cmd.need}' does not exist`;
+    if (cmd.need === cmd.jobId) return "A job cannot need itself";
+  }
+  const stepCmds = ["step.setName", "step.setUses", "step.setRun", "step.setWith", "step.remove"];
+  if (stepCmds.includes(command.type) && jobId !== undefined) {
+    const steps = doc.getIn([...jobBase(jobId), "steps"], true);
+    const n = isSeq(steps) ? steps.items.length : 0;
+    const i = cmd.index;
+    if (typeof i !== "number" || !Number.isInteger(i) || i < 0 || i >= n) {
+      return `Step ${String(i)} does not exist in job '${jobId}'`;
+    }
+  }
+  if (command.type === "step.add" && cmd.index !== undefined) {
+    const steps = doc.getIn([...jobBase(jobId as string), "steps"], true);
+    const n = isSeq(steps) ? steps.items.length : 0;
+    if (!Number.isInteger(cmd.index) || cmd.index < 0 || cmd.index > n) {
+      return `Step index ${cmd.index} is out of range for job '${jobId}'`;
+    }
+  }
+  return undefined;
+}
+
 export function applyCommand(source: string, command: EditorCommand): PatchResult {
   const doc = parseDocument(source, { version: "1.2" });
   if (doc.errors.length) {
     return { source, ok: false, error: "Cannot patch a document with parse errors" };
   }
+
+  const bad = validateTarget(doc, command);
+  if (bad) return { source, ok: false, error: bad };
 
   try {
     switch (command.type) {

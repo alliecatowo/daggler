@@ -554,6 +554,8 @@ permissions:
       const findings: RawFinding[] = [];
 
       for (const job of ir.jobs) {
+        // A reusable-workflow call has no steps here; the callee uses the token.
+        if (job.uses) continue;
         const effPerms = effectivePermissions(ir, job);
         if (!grantsIdTokenWrite(effPerms)) continue;
 

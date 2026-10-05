@@ -239,9 +239,9 @@ export async function runVerify(args: string[]): Promise<number> {
 
     // ── actionlint analysis ─────────────────────────────────────────────────
     const alResult = ActionlintAdapter.runActionlint(text, rel);
-    // actionlint findings are all "warning" severity; they don't cause exit 1
-    // UNLESS the task spec says "error-severity from either tool" —
-    // actionlint findings are always warning, so they never trigger exit 1.
+    // actionlint exits non-zero on any finding, and its findings are real
+    // syntax/semantic errors, so they fail verify too.
+    if (alResult.findings.length > 0) anyError = true;
 
     // ── JSON output ─────────────────────────────────────────────────────────
     if (flagJson) {

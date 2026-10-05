@@ -9,6 +9,8 @@
 
 import { stringify } from "yaml";
 import type {
+  ConcurrencyIR,
+  DefaultsIR,
   JobIR,
   PermissionIR,
   StepIR,
@@ -51,6 +53,19 @@ function denormTriggers(triggers: TriggerIR[]): unknown {
   return out;
 }
 
+function denormConcurrency(c: ConcurrencyIR): unknown {
+  const out: Record<string, unknown> = { group: c.group };
+  if (c.cancelInProgress != null) out["cancel-in-progress"] = c.cancelInProgress;
+  return out;
+}
+
+function denormDefaults(d: DefaultsIR): unknown | undefined {
+  const run: Record<string, unknown> = {};
+  if (d.shell) run.shell = d.shell;
+  if (d.workingDirectory) run["working-directory"] = d.workingDirectory;
+  return Object.keys(run).length ? { run } : undefined;
+}
+
 function denormStrategy(s: StrategyIR): unknown {
   const out: Record<string, unknown> = {};
   if (s.matrix) {
@@ -88,23 +103,32 @@ function denormStep(step: StepIR): unknown {
 function denormJob(job: JobIR): unknown {
   const out: Record<string, unknown> = {};
   if (job.name) out.name = job.name;
+  if (job.needs.length) out.needs = job.needs;
+  if (job.if) out.if = job.if;
   if (job.uses) {
+    // Reusable-workflow call: no runs-on/steps, but it keeps its scheduling,
+    // permissions, strategy and concurrency.
     out.uses = job.uses.raw;
     if (job.with) out.with = job.with;
     if (job.secrets) out.secrets = job.secrets;
+    if (job.permissions) out.permissions = denormPermissions(job.permissions);
+    if (job.concurrency) out.concurrency = denormConcurrency(job.concurrency);
+    if (job.strategy) out.strategy = denormStrategy(job.strategy);
     return out;
   }
   if (job.runsOn) out["runs-on"] = job.runsOn;
-  if (job.needs.length) out.needs = job.needs;
-  if (job.if) out.if = job.if;
   if (job.permissions) out.permissions = denormPermissions(job.permissions);
   if (job.environment) {
     out.environment = job.environment.url
       ? job.environment
       : job.environment.name;
   }
-  if (job.concurrency) out.concurrency = job.concurrency;
+  if (job.concurrency) out.concurrency = denormConcurrency(job.concurrency);
   if (job.env) out.env = job.env;
+  if (job.defaults) {
+    const d = denormDefaults(job.defaults);
+    if (d) out.defaults = d;
+  }
   if (job.strategy) out.strategy = denormStrategy(job.strategy);
   if (job.timeoutMinutes != null) out["timeout-minutes"] = job.timeoutMinutes;
   if (job.continueOnError) out["continue-on-error"] = job.continueOnError;
@@ -120,16 +144,10 @@ export function denormalize(ir: WorkflowIR): Record<string, unknown> {
   out.on = denormTriggers(ir.on);
   if (ir.permissions) out.permissions = denormPermissions(ir.permissions);
   if (ir.env) out.env = ir.env;
-  if (ir.concurrency) out.concurrency = ir.concurrency;
+  if (ir.concurrency) out.concurrency = denormConcurrency(ir.concurrency);
   if (ir.defaults) {
-    out.defaults = {
-      run: {
-        ...(ir.defaults.shell ? { shell: ir.defaults.shell } : {}),
-        ...(ir.defaults.workingDirectory
-          ? { "working-directory": ir.defaults.workingDirectory }
-          : {}),
-      },
-    };
+    const d = denormDefaults(ir.defaults);
+    if (d) out.defaults = d;
   }
   out.jobs = Object.fromEntries(ir.jobs.map((j) => [j.id, denormJob(j)]));
   return out;
