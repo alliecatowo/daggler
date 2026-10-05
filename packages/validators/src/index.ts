@@ -28,6 +28,7 @@ import { POLICY_RULES } from "./policies/rules.js";
 
 export * from "./types.js";
 export { POLICY_RULES } from "./policies/rules.js";
+export { untrustedFieldsIn, normalizeExpressionBody, UNTRUSTED_EVENT_FIELDS } from "./walk.js";
 export { POLICY_PACKS } from "./policies/packs.js";
 export {
   ACTION_CATALOG,

@@ -171,7 +171,10 @@ body.editor-mode { overflow: hidden; height: 100vh; }
   position: relative; z-index: 30;
 }
 .ed-top__left, .ed-top__right { display: flex; align-items: center; gap: 10px; }
-.ed-top__center { position: absolute; left: 50%; transform: translateX(-50%); }
+.ed-top__left { min-width: 0; flex: 1 1 auto; overflow: hidden; }
+.ed-top__right { flex: 0 0 auto; }
+.ed-top__center { flex: 0 0 auto; }
+.ed-crumb, .ed-file, .ed-brand { white-space: nowrap; }
 
 .ed-brand { display: flex; align-items: center; gap: 7px; text-decoration: none; color: var(--text-hi); }
 .ed-logo { color: var(--accent-text); display: flex; }
@@ -1178,3 +1181,24 @@ a.btn { text-decoration: none; }
 .ed-hosted-note a { color: var(--accent-text); text-decoration: none; }
 .ed-hosted-note a:hover { text-decoration: underline; }
 .ed-hosted-note code { font-family: var(--font-mono, monospace); }
+
+/* ---- phone layout for the editor (<= 820px) ------------------------------ */
+@media (max-width: 820px) {
+  .ed-canvasarea { flex-direction: column; }
+  .ed-canvasarea > .ed-pane { flex: 1 1 0; min-height: 0; width: 100%; }
+  .ed-diagrow { padding: 7px 10px; gap: 8px; }
+  .ed-diagrow__src, .ed-diagrow__path { display: none; }
+  .ed-diagrow__code { flex-basis: 52px; }
+}
+
+/* ---- top bar responsive (after the rules it overrides) ---- */
+@media (max-width: 1500px) { .ed-crumb, .ed-sep { display: none; } }
+@media (max-width: 1100px) { .ladder__sub { display: none; } .posture__sub { display: none; } }
+@media (max-width: 860px) {
+  .ed-file { display: none; }
+  .ed-top { gap: 8px; padding: 0 8px; }
+  .ladder__txt { display: none; }
+  .ed-top__right .btn { display: none; }
+  .ed-wordmark { display: none; }
+}
+

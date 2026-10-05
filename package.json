@@ -32,6 +32,10 @@
       "esbuild",
       "sharp",
       "@tailwindcss/oxide"
-    ]
+    ],
+    "overrides": {
+      "dompurify": ">=3.4.16",
+      "esbuild": ">=0.28.1"
+    }
   }
 }

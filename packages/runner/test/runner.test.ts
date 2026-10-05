@@ -136,3 +136,14 @@ describe("ActAdapter.capabilities() — always-on", () => {
     expect(caps.label).toBeTruthy();
   });
 });
+
+describe("GitHubDispatchAdapter argument validation", () => {
+  it("refuses hostile slug/ref/file without spawning gh", async () => {
+    const { GitHubDispatchAdapter } = await import("../src/github.js");
+    const a = new GitHubDispatchAdapter();
+    expect(a.dispatch({ repo: "a/b/../../c", ref: "main", workflowFile: "ci.yml" }).ok).toBe(false);
+    expect(a.dispatch({ repo: "a/b", ref: "--help", workflowFile: "ci.yml" }).message).toMatch(/invalid ref/);
+    expect(a.dispatch({ repo: "a/b", ref: "main", workflowFile: "../x.yml" }).message).toMatch(/invalid workflow/);
+    expect(a.latestRun("../x", "ci.yml")).toBeNull();
+  });
+});

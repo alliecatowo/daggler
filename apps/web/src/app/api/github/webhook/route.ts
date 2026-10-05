@@ -3,24 +3,40 @@
  *
  * NODE-ONLY: @daggler/github (node:crypto) must NEVER be imported from a
  * client component.
+ *
+ * Deliberately not behind the local-server guard: it is reachable from
+ * GitHub, and authenticated by the HMAC signature instead.
  * ============================================================================ */
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { type NextRequest, NextResponse } from "next/server";
-import { dispatchWebhook } from "@daggler/github";
+import { dispatchWebhook, GhCliAdapter } from "@daggler/github";
 import { JOB_REGISTRY } from "@daggler/worker/registry";
+import { planWebhookJobs } from "../../../../lib/webhook-jobs";
 
-// ---------------------------------------------------------------------------
-// Handler
-// ---------------------------------------------------------------------------
+/** GitHub caps deliveries at 25 MB. */
+const MAX_BODY_BYTES = 25 * 1024 * 1024;
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  // Read raw body text for HMAC verification (must happen before any parsing).
-  const rawBody = await req.text();
+  const declared = Number(req.headers.get("content-length") ?? "0");
+  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
+    return NextResponse.json(
+      { ok: false, reason: "payload too large" },
+      { status: 413 },
+    );
+  }
 
-  // Collect headers into a plain Record for dispatchWebhook.
+  // Raw body text for HMAC verification (must happen before any parsing).
+  const rawBody = await req.text();
+  if (rawBody.length > MAX_BODY_BYTES) {
+    return NextResponse.json(
+      { ok: false, reason: "payload too large" },
+      { status: 413 },
+    );
+  }
+
   const headers: Record<string, string | undefined> = {};
   req.headers.forEach((value, key) => {
     headers[key] = value;
@@ -36,27 +52,33 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // Fire-and-forget: invoke real JOB_REGISTRY handlers for known jobs.
-  // We only run jobs that are genuine implementations (validate.workflow,
-  // parse.workflow) — stubs that need GitHub/Postgres are intentionally skipped.
-  const REAL_JOBS = new Set(["validate.workflow", "parse.workflow"]);
   const jobs = result.jobs ?? [];
+  const event = result.event ?? "";
 
-  for (const jobName of jobs) {
-    if (REAL_JOBS.has(jobName)) {
-      const handler = JOB_REGISTRY[jobName];
-      if (handler) {
-        // Best-effort — do not await; errors are swallowed intentionally so
-        // the webhook response is never blocked.
-        handler({ rawBody, headers }).catch(() => {
-          /* fire-and-forget */
-        });
+  // Background: fetch the changed workflow files, then run the in-process
+  // handlers with the { yaml, path } payload they expect. Never blocks the
+  // response; failures are logged without payload contents.
+  void (async () => {
+    let payload: unknown;
+    try {
+      payload = JSON.parse(rawBody);
+    } catch {
+      return;
+    }
+    const plan = await planWebhookJobs(event, jobs, payload, new GhCliAdapter());
+    for (const { job, payload: jobPayload } of plan) {
+      const handler = JOB_REGISTRY[job];
+      if (!handler) continue;
+      try {
+        await handler(jobPayload);
+      } catch (err) {
+        console.error(
+          `[daggler] webhook job ${job} failed for ${jobPayload.path}:`,
+          err instanceof Error ? err.message : "unknown error",
+        );
       }
     }
-  }
+  })();
 
-  return NextResponse.json(
-    { ok: true, event: result.event, jobs },
-    { status: result.status },
-  );
+  return NextResponse.json({ ok: true, event, jobs }, { status: result.status });
 }

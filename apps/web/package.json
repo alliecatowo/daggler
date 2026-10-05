@@ -5,8 +5,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --webpack --hostname 127.0.0.1 --port 3737",
-    "build": "next build --webpack",
+    "dev": "node scripts/copy-monaco.mjs && next dev --webpack --hostname 127.0.0.1 --port 3737",
+    "build": "node scripts/copy-monaco.mjs && next build --webpack",
     "start": "next start --hostname 127.0.0.1 --port 3737",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

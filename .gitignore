@@ -28,3 +28,7 @@ daggler.zip
 docs/.vitepress/cache/
 docs/.vitepress/dist/
 apps/web/.api-stash/
+
+# copied from node_modules by apps/web/scripts/copy-monaco.mjs
+apps/web/public/monaco/
+.daggler-data/

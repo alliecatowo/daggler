@@ -1,4 +1,36 @@
 [tools]
-pnpm = "latest"
+node = "24"
+pnpm = "10"
 uv = "latest"
-node = "latest"
+
+[tasks.install]
+description = "Install dependencies from the lockfile"
+run = "pnpm install --frozen-lockfile"
+
+[tasks.lint]
+description = "Biome lint"
+run = "pnpm lint"
+
+[tasks.typecheck]
+description = "Typecheck every package"
+run = "pnpm -r typecheck"
+
+[tasks.test]
+description = "Run every package's tests"
+run = "pnpm -r test"
+
+[tasks."build:cli"]
+description = "Build the daggler-cli package"
+run = "pnpm --filter daggler-cli build"
+
+[tasks."build:web"]
+description = "Build the Next app (server mode)"
+run = "pnpm --filter @daggler/web build"
+
+[tasks."build:hosted"]
+description = "Build the static hosted editor (apps/web/out)"
+run = "pnpm --filter @daggler/web build:hosted"
+
+[tasks.check]
+description = "Everything CI runs"
+depends = ["lint", "typecheck", "test", "build:cli", "build:web"]

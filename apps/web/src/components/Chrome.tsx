@@ -7,6 +7,7 @@
  * wired to the live store instead of the static window.DAG mock.
  * ============================================================================ */
 
+import { HOSTED } from "../lib/hosted";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { prettyPath } from "@daggler/workflow-ir";
@@ -132,9 +133,9 @@ export function TopBar(): ReactNode {
 
         {/* Breadcrumb: org / repo + branch chip */}
         <nav className="ed-crumb mono">
-          <span className="ed-crumb__org">acme</span>
+          <span className="ed-crumb__org">{HOSTED ? "demo" : "acme"}</span>
           <span className="ed-crumb__slash">/</span>
-          <span className="ed-crumb__repo">web-platform</span>
+          <span className="ed-crumb__repo">{HOSTED ? "sample-workflows" : "web-platform"}</span>
           <span className="ed-branch">
             <BranchIcon size={11} />
             main
@@ -184,22 +185,37 @@ export function TopBar(): ReactNode {
           {theme === "dark" ? "☾" : "☀"}
         </button>
 
-        {/* Diff button */}
-        <button type="button"
-          className="btn btn--sm"
-          onClick={() => pushToast("Diff view — connect a base revision")}
-        >
-          Diff
-        </button>
+        {HOSTED ? (
+          // The demo has no repo behind it, so Diff and Open PR would be dead
+          // buttons. Point at the CLI, which does the real thing.
+          <a
+            className="btn btn--primary btn--sm"
+            href="https://alliecatowo.github.io/daggler/guide/getting-started"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Install the CLI
+          </a>
+        ) : (
+          <>
+            {/* Diff button */}
+            <button type="button"
+              className="btn btn--sm"
+              onClick={() => pushToast("Diff view — connect a base revision")}
+            >
+              Diff
+            </button>
 
-        {/* Open PR button */}
-        <button type="button"
-          className="btn btn--primary btn--sm"
-          onClick={() => pushToast("Opening a PR requires connecting GitHub")}
-        >
-          <PrIcon size={12} />
-          Open PR
-        </button>
+            {/* Open PR button */}
+            <button type="button"
+              className="btn btn--primary btn--sm"
+              onClick={() => pushToast("Opening a PR requires connecting GitHub")}
+            >
+              <PrIcon size={12} />
+              Open PR
+            </button>
+          </>
+        )}
       </div>
     </header>
   );
