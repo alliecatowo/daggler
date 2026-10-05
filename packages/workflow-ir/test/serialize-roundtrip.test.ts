@@ -39,6 +39,7 @@ jobs:
 describe("serialize round trip", () => {
   const out = serialize(parseWorkflow(SRC, { path: "x.yml" }).ir);
   const again = parseWorkflow(out, { path: "x.yml" });
+  // biome-ignore lint/suspicious/noExplicitAny: loosely-typed assertions on parsed YAML
   const raw = again.ir.raw as any;
 
   it("keeps concurrency with GitHub's key name", () => {

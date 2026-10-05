@@ -3,7 +3,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 const pkgDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const cliEntry = path.join(pkgDir, "src", "cli.ts");
@@ -126,13 +126,14 @@ describe("run: flag values are not mistaken for the workflow file", () => {
   it("reports the real file when --repo precedes it", async () => {
     const { runRun } = await import("../src/run.js");
     let err = "";
-    const w = process.stderr.write.bind(process.stderr);
-    (process.stderr as any).write = (c: any) => ((err += String(c)), true);
+    const spy = vi.spyOn(process.stderr, "write").mockImplementation((c: unknown) => {
+      err += String(c);
+      return true;
+    });
     try {
-      const code = await runRun(["--repo", "o/r", "does-not-exist.yml"]);
-      expect(code).toBe(1);
+      expect(await runRun(["--repo", "o/r", "does-not-exist.yml"])).toBe(1);
     } finally {
-      (process.stderr as any).write = w;
+      spy.mockRestore();
     }
     expect(err).toContain("does-not-exist.yml");
     expect(err).not.toContain("o/r:");
