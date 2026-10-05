@@ -9,11 +9,25 @@ export default defineConfig({
   lastUpdated: true,
   // /app/ is the static web editor, copied into the site by the docs workflow.
   ignoreDeadLinks: [/\/app\//],
+  head: [
+    ["link", { rel: "icon", type: "image/svg+xml", href: `${process.env.DOCS_BASE ?? "/daggler/"}favicon.svg` }],
+    ["link", { rel: "preconnect", href: "https://fonts.googleapis.com" }],
+    ["link", { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" }],
+    [
+      "link",
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap",
+      },
+    ],
+  ],
   themeConfig: {
+    logo: { light: "/logo-light.svg", dark: "/logo-dark.svg", alt: "" },
     nav: [
       { text: "Try it", link: "/app/editor/", target: "_self" },
       { text: "Guide", link: "/guide/getting-started" },
       { text: "CLI", link: "/reference/cli" },
+      { text: "Rules", link: "/reference/policy-rules" },
       { text: "npm", link: "https://www.npmjs.com/package/daggler-cli" },
     ],
     sidebar: [
@@ -21,17 +35,17 @@ export default defineConfig({
         text: "Guide",
         items: [
           { text: "Getting started", link: "/guide/getting-started" },
-          { text: "Web editor", link: "/guide/web-editor" },
+          { text: "Hosted editor", link: "/guide/web-editor" },
           { text: "Confidence ladder", link: "/guide/confidence-ladder" },
-          { text: "Self-hosting status", link: "/guide/self-hosting" },
+          { text: "Self-hosting", link: "/guide/self-hosting" },
         ],
       },
       {
         text: "Reference",
         items: [
           { text: "CLI", link: "/reference/cli" },
-          { text: "Validation layers", link: "/reference/validation" },
           { text: "Policy rules", link: "/reference/policy-rules" },
+          { text: "Validation layers", link: "/reference/validation" },
           { text: "Architecture", link: "/reference/architecture" },
         ],
       },

@@ -1,7 +1,22 @@
-# Self-hosting status
+# Self-hosting
 
-::: warning Work in progress
-The repository contains a `docker-compose.yml` and a Postgres schema, but the self-hosted stack is not complete. Do not rely on it yet.
+There are two ways to run Daggler yourself. The first works today; the second is not finished.
+
+## Run the editor on your own machine
+
+```bash
+git clone https://github.com/alliecatowo/daggler
+cd daggler
+pnpm install
+pnpm --filter @daggler/web dev
+```
+
+The server binds to `127.0.0.1:3737`, needs no database and no GitHub connection, and ships with the Local and GitHub run rungs behind environment flags (`DAGGLER_ALLOW_LOCAL_RUN`, `DAGGLER_ALLOW_GITHUB_DISPATCH`). It is a single-user tool: read the [security model](#security-model) before exposing it.
+
+## Docker Compose stack (work in progress)
+
+::: warning Not usable yet
+The repository contains a `docker-compose.yml` and a Postgres schema, but the multi-user self-hosted stack is not complete. Do not rely on it yet.
 :::
 
 What is there today:

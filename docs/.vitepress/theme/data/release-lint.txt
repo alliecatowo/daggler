@@ -1,0 +1,31 @@
+────────────────────────────────────────────────────────────────────────
+  examples/insecure-release.yml  Security F 0/100
+  6 errors  ·  4 warnings  ·  0 info
+  ⚑ Unpinned third-party actions
+  ⚑ Untrusted input reaches privileged context
+  ⚑ Shell injection risk
+
+  ● POL007  examples/insecure-release.yml:14:9  Action ref uses a branch
+  └─ 'actions/checkout@main' tracks a moving branch — each run may execute different code. Pin to a release tag or a full commit SHA.
+  ● POL008  examples/insecure-release.yml:21:9  Shell injection from untrusted input
+  └─ Untrusted 'github.event.pull_request.title' is interpolated into a shell script — an attacker can inject commands. Pass it via an env var and quote it instead.
+  ● POL002  examples/insecure-release.yml:29:9  Third-party action not SHA-pinned
+  └─ 'docker/build-push-action@v5' is pinned to a mutable tag — an upstream push can silently change what runs. Pin to a full commit SHA instead.
+  ● POL003  examples/insecure-release.yml:54:5  Privileged token on an untrusted event
+  └─ Job 'publish' runs on pull_request_target (an untrusted event) and grants contents permission — attacker-controlled code can exfiltrate secrets or modify the repository.
+  ● POL004  examples/insecure-release.yml:59:9  Secret reachable from untrusted event
+  └─ Secret 'NPM_TOKEN' is exposed to a workflow that runs on an untrusted event and may execute attacker-controlled code.
+  ● POL004  examples/insecure-release.yml:68:9  Secret reachable from untrusted event
+  └─ Secret 'DEPLOY_KEY' is exposed to a workflow that runs on an untrusted event and may execute attacker-controlled code.
+  ▲ POL001  examples/insecure-release.yml:workflow:permissions  No top-level permissions
+  └─ No top-level 'permissions:' block — the workflow inherits broad default token scopes; add an explicit least-privilege block.
+  ▲ POL006  examples/insecure-release.yml:51:3  Deploy without environment gate
+  └─ Deploy-like job 'publish' has no `environment:` protection gate — add one to require reviewer approval before deploying.
+  ▲ POL009  examples/insecure-release.yml:51:3  OIDC permission without a cloud step
+  └─ Job 'publish' grants id-token:write but none of its steps use a recognized cloud-auth (OIDC) action — remove the permission or add the appropriate cloud-auth action.
+  ▲ POL006  examples/insecure-release.yml:63:3  Deploy without environment gate
+  └─ Deploy-like job 'deploy' has no `environment:` protection gate — add one to require reviewer approval before deploying.
+
+════════════════════════════════════════════════════════════════════════
+  Summary  6 errors  ·  4 warnings  ·  0 info  in 1 file  ·  worst security grade F
+════════════════════════════════════════════════════════════════════════
