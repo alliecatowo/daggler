@@ -76,8 +76,8 @@ importers:
   apps/web:
     dependencies:
       '@anthropic-ai/sdk':
-        specifier: ^0.136.0
-        version: 0.136.0(zod@4.6.7)
+        specifier: ^1.8.0
+        version: 1.8.0(zod@4.6.7)
       '@daggler/ai':
         specifier: workspace:*
         version: link:../../packages/ai
@@ -329,8 +329,8 @@ importers:
 
 packages:
 
-  '@anthropic-ai/sdk@0.136.0':
-    resolution: {integrity: sha512-Rlvrq+RsE+Rur+kHbOkHMJWUkZxDn1f27U7X8Hx6dIOb/5IMbsKqFB+4X5Xl8PLf7qlL23Eritu0PSZdcjLQVg==}
+  '@anthropic-ai/sdk@1.8.0':
+    resolution: {integrity: sha512-yDOArk2+Qpd/djEKmZjrv7JZ+pn5iBHARJ9PAdvfhGf4H5wNqTgY/2K0/yDKdQdm8G8hrNQchMlBAHpPK7yBfg==}
     hasBin: true
     peerDependencies:
       zod: ^3.25.0 || ^4.0.0
@@ -338,8 +338,8 @@ packages:
       zod:
         optional: true
 
-  '@babel/runtime@7.29.10':
-    resolution: {integrity: sha512-NpugTzbKgGrNe45Ui32cN8vCFFMxVtP/9rtfwv0nP5FRDAjvYBxJcLVpYA9mr1jxP6cnIT7x9LUzuDTbWYYNRA==}
+  '@babel/runtime@7.29.13':
+    resolution: {integrity: sha512-v+oN26xP4YIlQsbQ/CbTH1WG5m/l/DjKKZNy/Kp3f/AFvbgt7Em/D0FeMM3O2hX0YzeN2M16W8lOpyhIkfCBcQ==}
     engines: {node: '>=6.9.0'}
 
   '@biomejs/biome@2.6.4':
@@ -1960,7 +1960,7 @@ packages:
 
 snapshots:
 
-  '@anthropic-ai/sdk@0.136.0(zod@4.6.7)':
+  '@anthropic-ai/sdk@1.8.0(zod@4.6.7)':
     dependencies:
       '@opentelemetry/api': 1.10.0
       json-schema-to-ts: 3.1.1
@@ -1968,7 +1968,7 @@ snapshots:
     optionalDependencies:
       zod: 4.6.7
 
-  '@babel/runtime@7.29.10': {}
+  '@babel/runtime@7.29.13': {}
 
   '@biomejs/biome@2.6.4':
     optionalDependencies:
@@ -2653,7 +2653,7 @@ snapshots:
 
   json-schema-to-ts@3.1.1:
     dependencies:
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 7.29.13
       ts-algebra: 2.0.0
 
   lightningcss-android-arm64@1.33.0:
