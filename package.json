@@ -18,14 +18,14 @@
     "web": "pnpm --filter @daggler/web dev"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.6.8",
-    "@types/node": "^26.6.6",
+    "@biomejs/biome": "^2.6.9",
+    "@types/node": "^26.6.7",
     "prettier": "^3.10.1",
     "tsx": "^4.23.15",
-    "turbo": "^2.11.11",
+    "turbo": "^2.11.13",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
